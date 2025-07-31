@@ -20,6 +20,11 @@
                     <span class="stat-label">Karten:</span>
                     <span id="card-count" class="stat-value">5</span>
                 </div>
+                <div class="save-controls">
+                    <button id="manual-save-btn" class="save-btn" title="Manuell speichern">💾</button>
+                    <button id="export-save-btn" class="save-btn" title="Spielstand exportieren">📤</button>
+                    <button id="reset-game-btn" class="save-btn reset" title="Spiel zurücksetzen">🔄</button>
+                </div>
             </div>
         </header>
 
@@ -33,7 +38,23 @@
         <main class="game-content">
             <!-- Kartensammlung -->
             <section id="collection" class="tab-content active">
-                <h2>Deine Kartensammlung</h2>
+                <div class="collection-header">
+                    <h2>Deine Kartensammlung</h2>
+                    <div class="collection-stats">
+                        <div class="collection-stat">
+                            <span class="stat-emoji">📊</span>
+                            <span id="total-cards">0</span> Karten
+                        </div>
+                        <div class="collection-stat">
+                            <span class="stat-emoji">🏆</span>
+                            <span id="legendary-cards">0</span> Legendäre
+                        </div>
+                        <div class="collection-stat">
+                            <span class="stat-emoji">💰</span>
+                            <span id="collection-value">0</span> Wert
+                        </div>
+                    </div>
+                </div>
                 <div class="filter-bar">
                     <select id="rarity-filter">
                         <option value="all">Alle Seltenheiten</option>
@@ -97,7 +118,11 @@
                 <div class="pack-info-panel">
                     <div class="panel-header">
                         <h4>📊 Drop-Raten Information</h4>
-                        <button id="restock-btn" class="restock-btn">🔄 Shop Auffüllen</button>
+                        <div class="panel-buttons">
+                            <input type="file" id="import-save-input" accept=".json" style="display: none;">
+                            <button id="import-save-btn" class="restock-btn import-btn">📥 Import</button>
+                            <button id="restock-btn" class="restock-btn">🔄 Shop Auffüllen</button>
+                        </div>
                     </div>
                     <div class="drop-rates">
                         <div class="rate-info basic-rate">
@@ -125,6 +150,18 @@
                         <div class="stat-item">
                             <span class="stat-label">Verfügbare Legendär-Packs:</span>
                             <span id="legendary-count" class="stat-value">30</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Speicher-Status -->
+                    <div class="save-status">
+                        <div class="save-status-item">
+                            <span class="save-label">💾 Letzter Speichervorgang:</span>
+                            <span id="last-save-time" class="save-time">Noch nicht gespeichert</span>
+                        </div>
+                        <div class="save-status-item">
+                            <span class="save-label">🎮 Auto-Save:</span>
+                            <span id="auto-save-status" class="save-status-active">Aktiv</span>
                         </div>
                     </div>
                 </div>
@@ -170,15 +207,113 @@
 
             <!-- Deck Builder -->
             <section id="deck" class="tab-content">
-                <h2>Deck Builder</h2>
-                <div class="deck-builder">
-                    <div class="current-deck">
-                        <h3>Aktuelles Deck (0/10)</h3>
-                        <div id="deck-cards" class="deck-cards"></div>
+                <div class="deck-builder-header">
+                    <h2>🎴 Deck Builder</h2>
+                    <div class="deck-actions">
+                        <button id="clear-deck-btn" class="deck-action-btn clear">🗑️ Deck leeren</button>
+                        <button id="auto-build-deck-btn" class="deck-action-btn auto">🤖 Auto-Build</button>
+                        <button id="save-deck-btn" class="deck-action-btn save">💾 Deck speichern</button>
                     </div>
-                    <div class="available-cards">
-                        <h3>Verfügbare Karten</h3>
-                        <div id="deck-builder-cards" class="card-grid small"></div>
+                </div>
+
+                <div class="deck-builder">
+                    <!-- Aktuelles Deck -->
+                    <div class="current-deck-section">
+                        <div class="deck-header">
+                            <h3>🎯 Aktuelles Kampf-Deck</h3>
+                            <div class="deck-stats">
+                                <span id="deck-count" class="deck-count">0</span>/<span class="deck-max">10</span> Karten
+                                <div class="deck-power">
+                                    <span class="power-label">⚡ Deck-Power:</span>
+                                    <span id="deck-power" class="power-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="deck-cards" class="deck-cards">
+                            <div class="empty-deck-message">
+                                <div class="empty-icon">🎴</div>
+                                <p>Dein Deck ist leer!</p>
+                                <p class="empty-hint">Klicke auf Karten aus deiner Sammlung, um sie hinzuzufügen.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Deck-Analyse -->
+                        <div class="deck-analysis">
+                            <h4>📊 Deck-Analyse</h4>
+                            <div class="analysis-stats">
+                                <div class="stat-group">
+                                    <span class="stat-label">Durchschnittlicher Angriff:</span>
+                                    <span id="avg-attack" class="stat-value">0</span>
+                                </div>
+                                <div class="stat-group">
+                                    <span class="stat-label">Durchschnittliche Verteidigung:</span>
+                                    <span id="avg-defense" class="stat-value">0</span>
+                                </div>
+                                <div class="stat-group">
+                                    <span class="stat-label">Durchschnittliche Lebenspunkte:</span>
+                                    <span id="avg-health" class="stat-value">0</span>
+                                </div>
+                            </div>
+                            <div class="rarity-distribution">
+                                <h5>Seltenheits-Verteilung:</h5>
+                                <div class="rarity-bars">
+                                    <div class="rarity-bar common">
+                                        <span class="rarity-label">Häufig</span>
+                                        <div class="rarity-progress">
+                                            <div id="common-bar" class="progress-fill"></div>
+                                        </div>
+                                        <span id="common-count" class="rarity-count">0</span>
+                                    </div>
+                                    <div class="rarity-bar rare">
+                                        <span class="rarity-label">Selten</span>
+                                        <div class="rarity-progress">
+                                            <div id="rare-bar" class="progress-fill"></div>
+                                        </div>
+                                        <span id="rare-count" class="rarity-count">0</span>
+                                    </div>
+                                    <div class="rarity-bar epic">
+                                        <span class="rarity-label">Episch</span>
+                                        <div class="rarity-progress">
+                                            <div id="epic-bar" class="progress-fill"></div>
+                                        </div>
+                                        <span id="epic-count" class="rarity-count">0</span>
+                                    </div>
+                                    <div class="rarity-bar legendary">
+                                        <span class="rarity-label">Legendär</span>
+                                        <div class="rarity-progress">
+                                            <div id="legendary-bar" class="progress-fill"></div>
+                                        </div>
+                                        <span id="legendary-count" class="rarity-count">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kartensammlung für Deck-Building -->
+                    <div class="deck-collection-section">
+                        <div class="collection-header">
+                            <h3>📚 Kartensammlung</h3>
+                            <div class="collection-filters">
+                                <select id="deck-rarity-filter">
+                                    <option value="all">Alle Seltenheiten</option>
+                                    <option value="common">Häufig</option>
+                                    <option value="rare">Selten</option>
+                                    <option value="epic">Episch</option>
+                                    <option value="legendary">Legendär</option>
+                                </select>
+                                <select id="deck-sort-filter">
+                                    <option value="name">Nach Name</option>
+                                    <option value="attack">Nach Angriff</option>
+                                    <option value="defense">Nach Verteidigung</option>
+                                    <option value="health">Nach Lebenspunkten</option>
+                                    <option value="rarity">Nach Seltenheit</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="deck-builder-cards" class="deck-builder-cards"></div>
                     </div>
                 </div>
             </section>

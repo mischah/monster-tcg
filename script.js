@@ -33,16 +33,24 @@ class Game {
         this.coins = 100;
         this.collection = [];
         this.deck = [];
+        this.maxDeckSize = 10;
         this.currentBattleMonster = null;
         this.enemyMonster = null;
         this.battleInProgress = false;
         
-        this.initializeStarterCards();
+        // Lade gespeicherte Daten oder initialisiere Starter-Karten
+        this.loadGameData();
         this.initializeEventListeners();
         this.updateDisplay();
         
         // Initialisiere Booster Displays
         this.initializeBoosterDisplays();
+        
+        // Initialisiere Drag & Drop für Deck Builder
+        this.initializeDragAndDrop();
+        
+        // Auto-Save alle 5 Sekunden
+        this.startAutoSave();
     }
 
     // Monster-Datenbank
@@ -146,6 +154,50 @@ class Game {
         // Restock Button
         document.getElementById('restock-btn').addEventListener('click', () => {
             this.restockBoosterDisplays();
+        });
+
+        // Import Save Button
+        document.getElementById('import-save-btn').addEventListener('click', () => {
+            document.getElementById('import-save-input').click();
+        });
+
+        document.getElementById('import-save-input').addEventListener('change', (e) => {
+            this.importSaveData(e.target.files[0]);
+        });
+
+        // Save/Load Controls
+        document.getElementById('manual-save-btn').addEventListener('click', () => {
+            this.manualSave();
+        });
+
+        document.getElementById('export-save-btn').addEventListener('click', () => {
+            this.exportSaveData();
+        });
+
+        document.getElementById('reset-game-btn').addEventListener('click', () => {
+            this.resetGame();
+        });
+
+        // Deck Builder Controls
+        document.getElementById('clear-deck-btn').addEventListener('click', () => {
+            this.clearDeck();
+        });
+
+        document.getElementById('auto-build-deck-btn').addEventListener('click', () => {
+            this.autoBuildDeck();
+        });
+
+        document.getElementById('save-deck-btn').addEventListener('click', () => {
+            this.saveDeck();
+        });
+
+        // Deck Builder Filters
+        document.getElementById('deck-rarity-filter').addEventListener('change', () => {
+            this.updateDeckBuilder();
+        });
+
+        document.getElementById('deck-sort-filter').addEventListener('change', () => {
+            this.updateDeckBuilder();
         });
 
         // Kampf
@@ -636,6 +688,10 @@ class Game {
             this.addBattleLog(`${this.enemyMonster.name} wurde besiegt! Du gewinnst!`);
             this.coins += 25;
             this.updateDisplay();
+            
+            // Speichere nach Kampf-Sieg
+            this.saveGameData();
+            
             this.resetBattle();
             return;
         }
@@ -701,6 +757,9 @@ class Game {
         // Alle Monster heilen
         this.collection.forEach(monster => monster.heal());
         this.updateBattleMonsterSelect();
+        
+        // Speichere nach Kampf-Reset (Heilung)
+        this.saveGameData();
     }
 
     filterCards() {
@@ -708,24 +767,580 @@ class Game {
     }
 
     updateDeckBuilder() {
-        // Aktuelles Deck anzeigen
-        const deckCards = document.getElementById('deck-cards');
-        deckCards.innerHTML = '';
+        // Update Deck-Anzeige
+        this.displayCurrentDeck();
         
-        // Verfügbare Karten anzeigen
-        const builderCards = document.getElementById('deck-builder-cards');
-        builderCards.innerHTML = '';
+        // Update verfügbare Karten
+        this.displayDeckBuilderCards();
         
-        this.collection.forEach(monster => {
-            const cardElement = this.createCardElement(monster, true);
-            cardElement.addEventListener('click', () => {
-                // Deck-Building Logik hier implementieren
-                alert('Deck-Building Feature kommt bald!');
-            });
-            builderCards.appendChild(cardElement);
+        // Update Deck-Analyse
+        this.updateDeckAnalysis();
+    }
+
+    displayCurrentDeck() {
+        const deckContainer = document.getElementById('deck-cards');
+        const deckCountElement = document.getElementById('deck-count');
+        
+        // Update Deck-Count
+        if (deckCountElement) {
+            deckCountElement.textContent = this.deck.length;
+        }
+        
+        if (this.deck.length === 0) {
+            deckContainer.innerHTML = `
+                <div class="empty-deck-message">
+                    <div class="empty-icon">🎴</div>
+                    <p>Dein Deck ist leer!</p>
+                    <p class="empty-hint">Klicke auf Karten aus deiner Sammlung, um sie hinzuzufügen.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        deckContainer.innerHTML = '';
+        
+        this.deck.forEach((monster, index) => {
+            const cardElement = this.createDeckCardElement(monster, index);
+            deckContainer.appendChild(cardElement);
         });
     }
 
+    createDeckCardElement(monster, index) {
+        const card = document.createElement('div');
+        card.className = `deck-card monster-card ${monster.rarity}`;
+        
+        card.innerHTML = `
+            <button class="remove-from-deck" onclick="game.removeFromDeck(${index})" title="Aus Deck entfernen">×</button>
+            <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
+            <div class="card-image">${monster.emoji}</div>
+            <div class="card-name">${monster.name}</div>
+            <div class="card-stats">
+                <div class="stat-item">
+                    <span class="stat-label">ATK</span>
+                    <span class="stat-value">${monster.attack}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">DEF</span>
+                    <span class="stat-value">${monster.defense}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">HP</span>
+                    <span class="stat-value">${monster.health}</span>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    displayDeckBuilderCards() {
+        const container = document.getElementById('deck-builder-cards');
+        const filteredCards = this.getFilteredDeckBuilderCards();
+        
+        container.innerHTML = '';
+        
+        filteredCards.forEach(monster => {
+            const cardElement = this.createDeckBuilderCardElement(monster);
+            container.appendChild(cardElement);
+        });
+    }
+
+    getFilteredDeckBuilderCards() {
+        let filtered = [...this.collection];
+        
+        // Seltenheits-Filter
+        const rarityFilter = document.getElementById('deck-rarity-filter')?.value || 'all';
+        if (rarityFilter !== 'all') {
+            filtered = filtered.filter(card => card.rarity === rarityFilter);
+        }
+        
+        // Sortierung
+        const sortFilter = document.getElementById('deck-sort-filter')?.value || 'name';
+        filtered.sort((a, b) => {
+            switch(sortFilter) {
+                case 'attack':
+                    return b.attack - a.attack;
+                case 'defense':
+                    return b.defense - a.defense;
+                case 'health':
+                    return b.maxHealth - a.maxHealth;
+                case 'rarity':
+                    const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4 };
+                    return rarityOrder[b.rarity] - rarityOrder[a.rarity];
+                case 'name':
+                default:
+                    return a.name.localeCompare(b.name);
+            }
+        });
+        
+        return filtered;
+    }
+
+    createDeckBuilderCardElement(monster) {
+        const card = document.createElement('div');
+        const isInDeck = this.deck.some(deckCard => deckCard.id === monster.id);
+        
+        card.className = `deck-builder-card monster-card ${monster.rarity}`;
+        if (isInDeck) {
+            card.classList.add('in-deck');
+        }
+
+        // Drag & Drop Funktionalität hinzufügen
+        card.draggable = true;
+        card.dataset.monsterId = monster.id;
+        
+        card.innerHTML = `
+            <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
+            <div class="card-image">${monster.emoji}</div>
+            <div class="card-name">${monster.name}</div>
+            <div class="card-stats">
+                <div class="stat-item">
+                    <span class="stat-label">ATK</span>
+                    <span class="stat-value">${monster.attack}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">DEF</span>
+                    <span class="stat-value">${monster.defense}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">HP</span>
+                    <span class="stat-value">${monster.health}</span>
+                </div>
+            </div>
+            ${!isInDeck ? `<button class="add-to-deck-btn" onclick="game.addToDeck('${monster.id}')" title="Zum Deck hinzufügen">+</button>` : ''}
+        `;
+
+        // Drag Event Listeners
+        card.addEventListener('dragstart', (e) => {
+            if (!isInDeck) {
+                e.dataTransfer.setData('text/plain', monster.id);
+                card.classList.add('dragging');
+            } else {
+                e.preventDefault();
+            }
+        });
+
+        card.addEventListener('dragend', () => {
+            card.classList.remove('dragging');
+        });
+        
+        // Karten-Details bei Klick anzeigen
+        card.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('add-to-deck-btn')) {
+                this.showCardDetails(monster);
+            }
+        });
+        
+        return card;
+    }
+
+    initializeDragAndDrop() {
+        const deckCardsContainer = document.getElementById('deck-cards');
+        
+        // Drop Zone für das Deck
+        deckCardsContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            deckCardsContainer.classList.add('drag-over');
+        });
+
+        deckCardsContainer.addEventListener('dragleave', (e) => {
+            if (!deckCardsContainer.contains(e.relatedTarget)) {
+                deckCardsContainer.classList.remove('drag-over');
+            }
+        });
+
+        deckCardsContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            deckCardsContainer.classList.remove('drag-over');
+            
+            const monsterId = e.dataTransfer.getData('text/plain');
+            if (monsterId) {
+                this.addToDeck(monsterId);
+            }
+        });
+    }
+
+    addToDeck(monsterId) {
+        if (this.deck.length >= this.maxDeckSize) {
+            this.showSaveIndicator(`⚠️ Deck ist voll! Maximum: ${this.maxDeckSize} Karten`, 'error');
+            return;
+        }
+        
+        const monster = this.collection.find(m => m.id === monsterId);
+        if (!monster) return;
+        
+        // Prüfe ob Karte bereits im Deck ist
+        if (this.deck.some(deckCard => deckCard.id === monsterId)) {
+            this.showSaveIndicator('⚠️ Karte ist bereits im Deck!', 'error');
+            return;
+        }
+        
+        // Füge Karte zum Deck hinzu
+        this.deck.push(monster);
+        
+        // Update Displays
+        this.updateDeckBuilder();
+        
+        // Speichere Änderungen
+        this.saveGameData();
+        
+        this.showSaveIndicator(`✅ ${monster.name} zum Deck hinzugefügt!`, 'success');
+    }
+
+    removeFromDeck(index) {
+        if (index >= 0 && index < this.deck.length) {
+            const removedMonster = this.deck.splice(index, 1)[0];
+            
+            // Update Displays
+            this.updateDeckBuilder();
+            
+            // Speichere Änderungen
+            this.saveGameData();
+            
+            this.showSaveIndicator(`🗑️ ${removedMonster.name} aus Deck entfernt!`, 'success');
+        }
+    }
+
+    clearDeck() {
+        if (this.deck.length === 0) {
+            this.showSaveIndicator('⚠️ Deck ist bereits leer!', 'error');
+            return;
+        }
+        
+        if (confirm('🗑️ Möchtest du wirklich das gesamte Deck leeren?')) {
+            this.deck = [];
+            this.updateDeckBuilder();
+            this.saveGameData();
+            this.showSaveIndicator('🗑️ Deck wurde geleert!', 'success');
+        }
+    }
+
+    autoBuildDeck() {
+        if (this.collection.length < this.maxDeckSize) {
+            this.showSaveIndicator('⚠️ Nicht genügend Karten für Auto-Build!', 'error');
+            return;
+        }
+        
+        // Leere aktuelles Deck
+        this.deck = [];
+        
+        // Sortiere Karten nach Power (Angriff + Verteidigung + Gesundheit)
+        const sortedCards = [...this.collection].sort((a, b) => {
+            const powerA = a.attack + a.defense + a.maxHealth;
+            const powerB = b.attack + b.defense + b.maxHealth;
+            return powerB - powerA;
+        });
+        
+        // Nehme die besten Karten, aber achte auf Balance
+        const rarityLimits = {
+            legendary: Math.min(3, Math.floor(this.maxDeckSize * 0.3)),
+            epic: Math.min(3, Math.floor(this.maxDeckSize * 0.3)),
+            rare: Math.min(4, Math.floor(this.maxDeckSize * 0.4)),
+            common: this.maxDeckSize
+        };
+        
+        const deckByRarity = { legendary: [], epic: [], rare: [], common: [] };
+        
+        // Verteile Karten nach Seltenheit
+        for (const card of sortedCards) {
+            if (deckByRarity[card.rarity].length < rarityLimits[card.rarity]) {
+                deckByRarity[card.rarity].push(card);
+            }
+        }
+        
+        // Fülle Deck mit den besten Karten jeder Seltenheit
+        this.deck = [
+            ...deckByRarity.legendary,
+            ...deckByRarity.epic,
+            ...deckByRarity.rare,
+            ...deckByRarity.common
+        ].slice(0, this.maxDeckSize);
+        
+        this.updateDeckBuilder();
+        this.saveGameData();
+        this.showSaveIndicator('🤖 Auto-Build abgeschlossen!', 'success');
+    }
+
+    saveDeck() {
+        if (this.deck.length === 0) {
+            this.showSaveIndicator('⚠️ Deck ist leer - nichts zu speichern!', 'error');
+            return;
+        }
+        
+        this.saveGameData();
+        this.showSaveIndicator('💾 Deck erfolgreich gespeichert!', 'success');
+    }
+
+    updateDeckAnalysis() {
+        if (this.deck.length === 0) {
+            this.resetDeckAnalysis();
+            return;
+        }
+        
+        // Berechne Durchschnittswerte
+        const totalAttack = this.deck.reduce((sum, card) => sum + card.attack, 0);
+        const totalDefense = this.deck.reduce((sum, card) => sum + card.defense, 0);
+        const totalHealth = this.deck.reduce((sum, card) => sum + card.maxHealth, 0);
+        
+        const avgAttack = Math.round(totalAttack / this.deck.length);
+        const avgDefense = Math.round(totalDefense / this.deck.length);
+        const avgHealth = Math.round(totalHealth / this.deck.length);
+        
+        // Update Durchschnittswerte
+        const avgAttackElement = document.getElementById('avg-attack');
+        const avgDefenseElement = document.getElementById('avg-defense');
+        const avgHealthElement = document.getElementById('avg-health');
+        
+        if (avgAttackElement) avgAttackElement.textContent = avgAttack;
+        if (avgDefenseElement) avgDefenseElement.textContent = avgDefense;
+        if (avgHealthElement) avgHealthElement.textContent = avgHealth;
+        
+        // Update Deck-Power
+        const deckPower = totalAttack + totalDefense + totalHealth;
+        const deckPowerElement = document.getElementById('deck-power');
+        if (deckPowerElement) {
+            deckPowerElement.textContent = deckPower;
+            
+            // Füge Deck-Qualitäts-Indikator hinzu
+            this.updateDeckQualityIndicator(deckPower, this.deck.length);
+        }
+        
+        // Update Seltenheits-Verteilung
+        const rarityCount = { common: 0, rare: 0, epic: 0, legendary: 0 };
+        this.deck.forEach(card => {
+            rarityCount[card.rarity]++;
+        });
+        
+        Object.keys(rarityCount).forEach(rarity => {
+            const countElement = document.getElementById(`${rarity}-count`);
+            const barElement = document.getElementById(`${rarity}-bar`);
+            
+            if (countElement) countElement.textContent = rarityCount[rarity];
+            if (barElement) {
+                const percentage = (rarityCount[rarity] / this.deck.length) * 100;
+                barElement.style.width = `${percentage}%`;
+            }
+        });
+    }
+
+    resetDeckAnalysis() {
+        // Reset alle Werte auf 0
+        ['avg-attack', 'avg-defense', 'avg-health', 'deck-power'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = '0';
+        });
+        
+        ['common', 'rare', 'epic', 'legendary'].forEach(rarity => {
+            const countElement = document.getElementById(`${rarity}-count`);
+            const barElement = document.getElementById(`${rarity}-bar`);
+            
+            if (countElement) countElement.textContent = '0';
+            if (barElement) barElement.style.width = '0%';
+        });
+    }
+
+    // Display und Update Funktionen
+    updateDisplay() {
+        document.getElementById('coins').textContent = this.coins;
+        document.getElementById('card-count').textContent = this.collection.length;
+        
+        // Update Collection Statistics
+        this.updateCollectionStats();
+    }
+
+    updateCollectionStats() {
+        const rarityCount = { common: 0, rare: 0, epic: 0, legendary: 0 };
+        
+        this.collection.forEach(card => {
+            rarityCount[card.rarity]++;
+        });
+        
+        // Update collection header stats if they exist
+        Object.keys(rarityCount).forEach(rarity => {
+            const element = document.getElementById(`collection-${rarity}-count`);
+            if (element) {
+                element.textContent = rarityCount[rarity];
+            }
+        });
+    }
+
+    // Save/Load System
+    loadGameData() {
+        try {
+            const savedData = localStorage.getItem('monsterTCG-gameData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                
+                this.coins = data.coins || 100;
+                this.collection = data.collection ? data.collection.map(cardData => 
+                    new Monster(cardData.name, cardData.emoji, cardData.attack, 
+                               cardData.defense, cardData.maxHealth, cardData.rarity, cardData.description)
+                ) : [];
+                
+                this.deck = data.deck ? data.deck.map(cardData => 
+                    new Monster(cardData.name, cardData.emoji, cardData.attack, 
+                               cardData.defense, cardData.maxHealth, cardData.rarity, cardData.description)
+                ) : [];
+                
+                // Wenn keine Sammlung vorhanden, Starter-Karten initialisieren
+                if (this.collection.length === 0) {
+                    this.initializeStarterCards();
+                }
+            } else {
+                // Neues Spiel - Starter-Karten initialisieren
+                this.initializeStarterCards();
+            }
+        } catch (error) {
+            console.warn('Fehler beim Laden der Spielstände:', error);
+            this.initializeStarterCards();
+        }
+    }
+
+    saveGameData() {
+        try {
+            const gameData = {
+                coins: this.coins,
+                collection: this.collection.map(card => ({
+                    name: card.name,
+                    emoji: card.emoji,
+                    attack: card.attack,
+                    defense: card.defense,
+                    maxHealth: card.maxHealth,
+                    rarity: card.rarity,
+                    description: card.description
+                })),
+                deck: this.deck.map(card => ({
+                    name: card.name,
+                    emoji: card.emoji,
+                    attack: card.attack,
+                    defense: card.defense,
+                    maxHealth: card.maxHealth,
+                    rarity: card.rarity,
+                    description: card.description
+                })),
+                lastSaved: new Date().toISOString()
+            };
+            
+            localStorage.setItem('monsterTCG-gameData', JSON.stringify(gameData));
+            this.updateSaveStatus();
+        } catch (error) {
+            console.error('Fehler beim Speichern:', error);
+        }
+    }
+
+    startAutoSave() {
+        // Auto-Save alle 10 Sekunden
+        this.autoSaveInterval = setInterval(() => {
+            this.saveGameData();
+        }, 10000);
+    }
+
+    manualSave() {
+        this.saveGameData();
+        this.showSaveIndicator('💾 Spiel manuell gespeichert!', 'success');
+    }
+
+    exportSaveData() {
+        try {
+            const gameData = {
+                coins: this.coins,
+                collection: this.collection,
+                deck: this.deck,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(gameData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `monster-tcg-save-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            this.showSaveIndicator('📤 Spielstand exportiert!', 'success');
+        } catch (error) {
+            this.showSaveIndicator('❌ Export fehlgeschlagen!', 'error');
+        }
+    }
+
+    importSaveData(file) {
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                
+                this.coins = data.coins || 100;
+                this.collection = data.collection || [];
+                this.deck = data.deck || [];
+                
+                this.updateDisplay();
+                this.updateDeckBuilder();
+                this.saveGameData();
+                
+                this.showSaveIndicator('📥 Spielstand importiert!', 'success');
+            } catch (error) {
+                this.showSaveIndicator('❌ Import fehlgeschlagen!', 'error');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    resetGame() {
+        if (confirm('🔄 Möchtest du wirklich das komplette Spiel zurücksetzen? Alle Fortschritte gehen verloren!')) {
+            localStorage.removeItem('monsterTCG-gameData');
+            location.reload();
+        }
+    }
+
+    updateSaveStatus() {
+        const saveTimeElement = document.getElementById('last-save-time');
+        if (saveTimeElement) {
+            const now = new Date();
+            saveTimeElement.textContent = now.toLocaleTimeString();
+        }
+    }
+
+    showSaveIndicator(message, type = 'success') {
+        // Erstelle Save-Indikator Element falls es nicht existiert
+        let indicator = document.getElementById('save-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'save-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-weight: bold;
+                z-index: 10000;
+                transition: all 0.3s ease;
+                transform: translateX(400px);
+            `;
+            document.body.appendChild(indicator);
+        }
+        
+        // Styling basierend auf Typ
+        if (type === 'success') {
+            indicator.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+            indicator.style.color = 'white';
+        } else if (type === 'error') {
+            indicator.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+            indicator.style.color = 'white';
+        }
+        
+        indicator.textContent = message;
+        indicator.style.transform = 'translateX(0)';
+        
+        // Nach 3 Sekunden ausblenden
+        setTimeout(() => {
+            indicator.style.transform = 'translateX(400px)';
+        }, 3000);
+    }
+
+    // Booster Display Funktionen
     initializeBoosterDisplays() {
         // Generiere 30 Booster für jeden Typ
         this.generateBoosterDisplay('basic', 30);
@@ -736,9 +1351,9 @@ class Game {
     generateBoosterDisplay(packType, count) {
         const display = document.querySelector(`.${packType}-display`);
         if (!display) return;
-
-        display.innerHTML = ''; // Leere das Display
-
+        
+        display.innerHTML = '';
+        
         for (let i = 0; i < count; i++) {
             const pack = this.createDisplayPack(packType, i);
             display.appendChild(pack);
@@ -750,87 +1365,40 @@ class Game {
         pack.className = `display-pack ${packType}-pack`;
         pack.dataset.packType = packType;
         pack.dataset.packIndex = index;
-
-        // Pack-spezifische Emojis und Sparkles
-        let emoji, sparkles;
-        switch(packType) {
-            case 'basic':
-                emoji = '📦';
-                sparkles = '✨';
-                break;
-            case 'premium':
-                emoji = '✨';
-                sparkles = '⭐💫';
-                break;
-            case 'legendary':
-                emoji = '🌟';
-                sparkles = '🌌💫⭐';
-                break;
-        }
-
+        
+        // Pack-spezifische Emojis
+        const packEmojis = {
+            'basic': '📦',
+            'premium': '✨',
+            'legendary': '🌟'
+        };
+        
         pack.innerHTML = `
-            <div class="display-pack-emoji">${emoji}</div>
-            <div class="display-pack-sparkles">${sparkles}</div>
+            <div class="pack-icon">${packEmojis[packType]}</div>
+            <div class="pack-number">#${index + 1}</div>
         `;
-
-        // Event Listener für Kauf
+        
         pack.addEventListener('click', () => {
-            this.buyPackFromDisplay(packType, pack);
+            if (!pack.classList.contains('sold-out')) {
+                this.buyPackFromDisplay(packType, pack);
+            }
         });
-
+        
         return pack;
     }
 
     buyPackFromDisplay(packType, packElement) {
-        // Prüfe ob Pack bereits gekauft oder ausverkauft ist
-        if (packElement.classList.contains('purchasing') || 
-            packElement.classList.contains('sold-out')) {
-            return;
-        }
-
-        let cost;
-        switch(packType) {
-            case 'basic': cost = 50; break;
-            case 'premium': cost = 100; break;
-            case 'legendary': cost = 250; break;
-        }
-
-        if (this.coins < cost) {
-            this.showPurchaseIndicator('💸 Nicht genügend Münzen!', 'error');
-            return;
-        }
-
-        // Kaufanimation starten
-        packElement.classList.add('purchasing');
+        // Erst Pack kaufen
+        this.buyPack(packType);
         
-        // Kurze Verzögerung für Animation
-        setTimeout(() => {
-            this.coins -= cost;
-            
-            // Karten generieren
-            const cardCount = packType === 'legendary' ? 3 : 5;
-            const newCards = this.generatePackCards(packType, cardCount);
-            
-            // Karten zur Sammlung hinzufügen
-            this.collection.push(...newCards);
-            
-            // Pack-Opening Animation
-            this.showPackOpening(newCards, packType);
-            
-            // Pack als verkauft markieren
-            packElement.classList.remove('purchasing');
-            packElement.classList.add('sold-out');
-            
-            // Update Display
-            this.updateDisplay();
-            
-            // Update Shop Stats
-            this.updateShopStats();
-            
-            // Erfolgs-Indikator
-            this.showPurchaseIndicator(`🎉 ${this.getPackTypeName(packType)} gekauft!`, 'success');
-            
-        }, 400);
+        // Dann Pack als verkauft markieren
+        packElement.classList.add('sold-out');
+        packElement.innerHTML = `
+            <div class="pack-icon sold">❌</div>
+            <div class="pack-status">Verkauft</div>
+        `;
+        
+        this.showPurchaseIndicator(`${this.getPackTypeName(packType)} gekauft!`, 'success');
     }
 
     getPackTypeName(packType) {
@@ -843,31 +1411,12 @@ class Game {
     }
 
     showPurchaseIndicator(message, type = 'success') {
-        const indicator = document.createElement('div');
-        indicator.className = 'pack-purchase-indicator';
-        indicator.textContent = message;
-        
-        if (type === 'error') {
-            indicator.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
-        }
-        
-        document.body.appendChild(indicator);
-        
-        setTimeout(() => {
-            indicator.remove();
-        }, 2000);
+        this.showSaveIndicator(message, type);
     }
 
     restockBoosterDisplays() {
-        // Alle verkauften Packs wieder verfügbar machen
-        document.querySelectorAll('.display-pack.sold-out').forEach(pack => {
-            pack.classList.remove('sold-out');
-        });
-        
-        // Shop-Statistiken aktualisieren
-        this.updateShopStats();
-        
-        this.showPurchaseIndicator('🔄 Shop wurde aufgefüllt!', 'success');
+        this.initializeBoosterDisplays();
+        this.showSaveIndicator('🔄 Alle Booster-Displays wurden aufgefüllt!', 'success');
     }
 
     updateShopStats() {
@@ -875,34 +1424,17 @@ class Game {
         const basicAvailable = document.querySelectorAll('.basic-pack:not(.sold-out)').length;
         const premiumAvailable = document.querySelectorAll('.premium-pack:not(.sold-out)').length;
         const legendaryAvailable = document.querySelectorAll('.legendary-pack:not(.sold-out)').length;
-
-        // Update Anzeige
-        document.getElementById('basic-count').textContent = basicAvailable;
-        document.getElementById('premium-count').textContent = premiumAvailable;
-        document.getElementById('legendary-count').textContent = legendaryAvailable;
-    }
-
-    updateDisplay() {
-        document.getElementById('coins').textContent = this.coins;
-        document.getElementById('card-count').textContent = this.collection.length;
         
-        // Aktive Tab aktualisieren
-        const activeTab = document.querySelector('.tab-content.active').id;
-        if (activeTab === 'collection') {
-            this.displayCollection();
-        }
+        // Update UI falls Shop-Stats-Elemente existieren
+        const basicCountElement = document.getElementById('basic-pack-count');
+        const premiumCountElement = document.getElementById('premium-pack-count');
+        const legendaryCountElement = document.getElementById('legendary-pack-count');
+        
+        if (basicCountElement) basicCountElement.textContent = basicAvailable;
+        if (premiumCountElement) premiumCountElement.textContent = premiumAvailable;
+        if (legendaryCountElement) legendaryCountElement.textContent = legendaryAvailable;
     }
 }
 
-// Spiel initialisieren wenn die Seite geladen ist
-document.addEventListener('DOMContentLoaded', () => {
-    window.game = new Game();
-    
-    // Erste Anzeige der Kartensammlung
-    window.game.switchTab('collection');
-});
-
-// Export für mögliche Erweiterungen
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { Monster, Game };
-}
+// Initialize the game
+const game = new Game();

@@ -43,6 +43,7 @@ body {
 .header-stats {
     display: flex;
     gap: 30px;
+    align-items: center;
 }
 
 .stat {
@@ -60,6 +61,43 @@ body {
     font-size: 1.5rem;
     font-weight: bold;
     color: #ffd700;
+}
+
+.save-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: 20px;
+}
+
+.save-btn {
+    background: linear-gradient(45deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.5);
+}
+
+.save-btn.reset {
+    background: linear-gradient(45deg, #f44336, #d32f2f);
+    box-shadow: 0 3px 10px rgba(244, 67, 54, 0.3);
+}
+
+.save-btn.reset:hover {
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.5);
 }
 
 /* Navigation */
@@ -937,6 +975,11 @@ body {
     margin-bottom: 15px;
 }
 
+.panel-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .restock-btn {
     background: linear-gradient(45deg, #2196F3, #1976D2);
     color: white;
@@ -959,6 +1002,15 @@ body {
 
 .restock-btn:active {
     transform: translateY(0);
+}
+
+.import-btn {
+    background: linear-gradient(45deg, #FF9800, #F57C00);
+    box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
+}
+
+.import-btn:hover {
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.5);
 }
 
 /* Shop Statistics */
@@ -988,4 +1040,645 @@ body {
     color: #4CAF50;
     font-weight: bold;
     font-size: 1rem;
+}
+
+/* Save Status */
+.save-status {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    border-left: 4px solid #2196F3;
+}
+
+.save-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.save-status-item:last-child {
+    margin-bottom: 0;
+}
+
+.save-label {
+    color: #E0E0E0;
+    font-size: 0.9rem;
+}
+
+.save-time {
+    color: #2196F3;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.save-status-active {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.save-status-inactive {
+    color: #f44336;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Collection Header */
+.collection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.collection-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.collection-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-emoji {
+    font-size: 1.2rem;
+}
+
+/* Responsive Design für Collection Header */
+@media (max-width: 768px) {
+    .collection-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .collection-stats {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .collection-stat {
+        flex: 1;
+        justify-content: center;
+        min-width: 80px;
+    }
+}
+
+/* ===== DECK BUILDER STYLES ===== */
+
+.deck-builder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.deck-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.deck-action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.deck-action-btn.clear {
+    background: linear-gradient(45deg, #f44336, #d32f2f);
+    color: white;
+}
+
+.deck-action-btn.auto {
+    background: linear-gradient(45deg, #FF9800, #F57C00);
+    color: white;
+}
+
+.deck-action-btn.save {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+}
+
+.deck-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.deck-builder {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    min-height: 600px;
+}
+
+/* Aktuelles Deck Section */
+.current-deck-section {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-radius: 20px;
+    padding: 25px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.deck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.deck-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.deck-count {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #FFD700;
+}
+
+.deck-max {
+    color: #E0E0E0;
+}
+
+.deck-power {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.power-label {
+    color: #E0E0E0;
+    font-size: 0.9rem;
+}
+
+.power-value {
+    color: #4CAF50;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.deck-cards {
+    min-height: 200px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+    max-height: 300px;
+}
+
+.empty-deck-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #888;
+    padding: 40px 20px;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.empty-hint {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 10px;
+}
+
+.deck-card {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.deck-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.deck-card .remove-from-deck {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(244, 67, 54, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.deck-card:hover .remove-from-deck {
+    opacity: 1;
+}
+
+/* Deck-Analyse */
+.deck-analysis {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.deck-analysis h4 {
+    color: #FFD700;
+    margin-bottom: 15px;
+    font-family: 'Orbitron', monospace;
+}
+
+.analysis-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.stat-label {
+    color: #E0E0E0;
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.rarity-distribution h5 {
+    color: #FFD700;
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+.rarity-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rarity-bar {
+    display: grid;
+    grid-template-columns: 60px 1fr 30px;
+    align-items: center;
+    gap: 10px;
+}
+
+.rarity-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.rarity-progress {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.rarity-bar.common .progress-fill { background: #4CAF50; }
+.rarity-bar.rare .progress-fill { background: #2196F3; }
+.rarity-bar.epic .progress-fill { background: #9C27B0; }
+.rarity-bar.legendary .progress-fill { background: #FFD700; }
+
+.rarity-count {
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Kartensammlung für Deck-Building */
+.deck-collection-section {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-radius: 20px;
+    padding: 25px;
+    border: 2px solid rgba(33, 150, 243, 0.3);
+}
+
+.collection-header {
+    margin-bottom: 20px;
+}
+
+.collection-filters {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.collection-filters select {
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 0.9rem;
+}
+
+.deck-builder-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+}
+
+.deck-builder-card {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 1;
+}
+
+.deck-builder-card:hover {
+    transform: translateY(-5px) scale(1.05);
+    z-index: 10;
+}
+
+.deck-builder-card.in-deck {
+    opacity: 0.5;
+    filter: grayscale(0.3);
+}
+
+.deck-builder-card.in-deck::after {
+    content: '✓ Im Deck';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: rgba(76, 175, 80, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+.add-to-deck-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(76, 175, 80, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.deck-builder-card:hover .add-to-deck-btn {
+    opacity: 1;
+}
+
+.deck-builder-card.in-deck .add-to-deck-btn {
+    display: none;
+}
+
+/* Responsive Design für Deck Builder */
+@media (max-width: 1024px) {
+    .deck-builder {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .deck-builder-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .deck-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .deck-stats {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    .deck-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .deck-action-btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .collection-filters {
+        flex-direction: column;
+    }
+    
+    .collection-filters select {
+        width: 100%;
+    }
+    
+    .deck-builder-cards {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* Drag & Drop Styles */
+.deck-builder-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.deck-cards.drag-over {
+    background: linear-gradient(145deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
+    border: 2px dashed #4CAF50;
+    transform: scale(1.02);
+}
+
+.deck-cards.drag-over::before {
+    content: '🎯 Karte hier ablegen um sie zum Deck hinzuzufügen';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #4CAF50;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.1rem;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid #4CAF50;
+    backdrop-filter: blur(5px);
+}
+
+/* Deck Builder Tooltips */
+.deck-builder-card {
+    position: relative;
+}
+
+.deck-builder-card::after {
+    content: 'Klicken für Details • Drag & Drop zum Deck hinzufügen';
+    position: absolute;
+    bottom: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.deck-builder-card:hover::after {
+    opacity: 1;
+}
+
+.deck-builder-card.in-deck::after {
+    content: 'Bereits im Deck • Klicken für Details';
+}
+
+/* Verbesserte Deck Card Animationen */
+.deck-card {
+    animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Deck Stats Verbesserungen */
+.deck-stats {
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+    border-radius: 15px;
+    padding: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.deck-count {
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.power-value {
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+/* Deck Quality Indicator */
+.deck-quality-indicator {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 2px solid;
+}
+
+.deck-quality-poor {
+    background: linear-gradient(45deg, #f44336, #d32f2f);
+    color: white;
+    border-color: #f44336;
+}
+
+.deck-quality-average {
+    background: linear-gradient(45deg, #ff9800, #f57c00);
+    color: white;
+    border-color: #ff9800;
+}
+
+.deck-quality-good {
+    background: linear-gradient(45deg, #4caf50, #45a049);
+    color: white;
+    border-color: #4caf50;
+}
+
+.deck-quality-epic {
+    background: linear-gradient(45deg, #9c27b0, #7b1fa2);
+    color: white;
+    border-color: #9c27b0;
+    box-shadow: 0 0 15px rgba(156, 39, 176, 0.4);
+}
+
+.deck-quality-legendary {
+    background: linear-gradient(45deg, #ffd700, #ffa000);
+    color: #1a1a1a;
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    animation: legendaryGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes legendaryGlow {
+    from { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+    to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
 }
