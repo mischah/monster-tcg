@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monster TCG - Sammelkartenspiel</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🔥 Monster TCG 🔥</h1>
+            <div class="header-stats">
+                <div class="stat">
+                    <span class="stat-label">Münzen:</span>
+                    <span id="coins" class="stat-value">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Karten:</span>
+                    <span id="card-count" class="stat-value">5</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="game-nav">
+            <button class="nav-btn active" data-tab="collection">📚 Sammlung</button>
+            <button class="nav-btn" data-tab="shop">🛒 Shop</button>
+            <button class="nav-btn" data-tab="battle">⚔️ Arena</button>
+            <button class="nav-btn" data-tab="deck">🎴 Deck</button>
+        </nav>
+
+        <main class="game-content">
+            <!-- Kartensammlung -->
+            <section id="collection" class="tab-content active">
+                <h2>Deine Kartensammlung</h2>
+                <div class="filter-bar">
+                    <select id="rarity-filter">
+                        <option value="all">Alle Seltenheiten</option>
+                        <option value="common">Häufig</option>
+                        <option value="rare">Selten</option>
+                        <option value="epic">Episch</option>
+                        <option value="legendary">Legendär</option>
+                    </select>
+                    <input type="text" id="search-cards" placeholder="Karten suchen...">
+                </div>
+                <div id="card-grid" class="card-grid"></div>
+            </section>
+
+            <!-- Shop -->
+            <section id="shop" class="tab-content">
+                <h2>🛒 Kartenshop - Booster Display</h2>
+                
+                <!-- Basis-Booster Display -->
+                <div class="pack-display-section">
+                    <div class="pack-type-header basic-header">
+                        <h3>📦 Basis-Booster Display</h3>
+                        <div class="pack-info-compact">
+                            <span class="pack-price">💰 50 Münzen</span>
+                            <span class="pack-description">5 Karten • Standard Drops</span>
+                        </div>
+                    </div>
+                    <div class="pack-display basic-display" data-pack-type="basic">
+                        <!-- 30 Basis-Booster werden hier generiert -->
+                    </div>
+                </div>
+
+                <!-- Premium-Booster Display -->
+                <div class="pack-display-section">
+                    <div class="pack-type-header premium-header">
+                        <h3>✨ Premium-Booster Display</h3>
+                        <div class="pack-info-compact">
+                            <span class="pack-price">💰 100 Münzen</span>
+                            <span class="pack-description">5 Karten • Garantiert 1 Seltene+</span>
+                        </div>
+                    </div>
+                    <div class="pack-display premium-display" data-pack-type="premium">
+                        <!-- 30 Premium-Booster werden hier generiert -->
+                    </div>
+                </div>
+
+                <!-- Legendärer-Booster Display -->
+                <div class="pack-display-section">
+                    <div class="pack-type-header legendary-header">
+                        <h3>🌟 Legendärer-Booster Display</h3>
+                        <div class="pack-info-compact">
+                            <span class="pack-price">💰 250 Münzen</span>
+                            <span class="pack-description">3 Karten • Garantiert 1 Legendäre</span>
+                        </div>
+                    </div>
+                    <div class="pack-display legendary-display" data-pack-type="legendary">
+                        <!-- 30 Legendäre-Booster werden hier generiert -->
+                    </div>
+                </div>
+
+                <!-- Pack Information Panel -->
+                <div class="pack-info-panel">
+                    <div class="panel-header">
+                        <h4>📊 Drop-Raten Information</h4>
+                        <button id="restock-btn" class="restock-btn">🔄 Shop Auffüllen</button>
+                    </div>
+                    <div class="drop-rates">
+                        <div class="rate-info basic-rate">
+                            <strong>📦 Basis-Booster:</strong>
+                            <span>60% Häufig • 30% Selten • 9% Episch • 1% Legendär</span>
+                        </div>
+                        <div class="rate-info premium-rate">
+                            <strong>✨ Premium-Booster:</strong>
+                            <span>40% Häufig • 40% Selten • 15% Episch • 5% Legendär</span>
+                        </div>
+                        <div class="rate-info legendary-rate">
+                            <strong>🌟 Legendärer-Booster:</strong>
+                            <span>33% Episch • 33% Legendär • 34% Ultra-Selten</span>
+                        </div>
+                    </div>
+                    <div class="shop-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Verfügbare Basis-Packs:</span>
+                            <span id="basic-count" class="stat-value">30</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Verfügbare Premium-Packs:</span>
+                            <span id="premium-count" class="stat-value">30</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Verfügbare Legendär-Packs:</span>
+                            <span id="legendary-count" class="stat-value">30</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pack Opening Animation Bereich -->
+                <div id="pack-opening" class="pack-opening hidden">
+                    <div class="pack-opening-content">
+                        <h3>🎉 Pack wird geöffnet...</h3>
+                        <div class="opening-animation">
+                            <div class="pack-spinner">📦</div>
+                        </div>
+                        <div id="revealed-cards" class="revealed-cards"></div>
+                        <button id="collect-cards" class="collect-btn hidden">Karten einsammeln</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Arena/Kampf -->
+            <section id="battle" class="tab-content">
+                <h2>Kampfarena</h2>
+                <div class="battle-area">
+                    <div class="player-side">
+                        <h3>Dein Monster</h3>
+                        <div id="player-monster" class="battle-monster"></div>
+                        <div class="battle-controls">
+                            <select id="monster-select">
+                                <option value="">Monster wählen...</option>
+                            </select>
+                            <button id="attack-btn" disabled>Angreifen!</button>
+                        </div>
+                    </div>
+                    <div class="vs-section">
+                        <div class="vs-text">VS</div>
+                        <div class="battle-log" id="battle-log"></div>
+                    </div>
+                    <div class="enemy-side">
+                        <h3>Gegner Monster</h3>
+                        <div id="enemy-monster" class="battle-monster"></div>
+                        <button id="find-opponent-btn">Gegner finden</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Deck Builder -->
+            <section id="deck" class="tab-content">
+                <h2>Deck Builder</h2>
+                <div class="deck-builder">
+                    <div class="current-deck">
+                        <h3>Aktuelles Deck (0/10)</h3>
+                        <div id="deck-cards" class="deck-cards"></div>
+                    </div>
+                    <div class="available-cards">
+                        <h3>Verfügbare Karten</h3>
+                        <div id="deck-builder-cards" class="card-grid small"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Card Details Modal -->
+    <div id="card-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-card-details"></div>
+        </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+</body>
+</html>
