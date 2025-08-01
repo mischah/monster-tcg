@@ -9,12 +9,18 @@ npm install
 
 ## Development Server starten
 
-Starte den Entwicklungsserver mit Live-Reload:
+Starte den **Vite Development Server** mit Live-Reload:
 ```bash
 npm run dev
 ```
 
-Der Server läuft auf `http://localhost:3000` und öffnet sich automatisch im Browser.
+**Features:**
+- ⚡ **Instant Hot Reload** - Änderungen werden sofort sichtbar
+- 🔄 **Hot Module Replacement (HMR)** - Keine vollständigen Reloads
+- 📦 **ES6 Module Support** - Moderne JavaScript-Features
+- 🚀 **Optimierte Performance**
+
+Der Server läuft auf `http://localhost:3003` (oder nächster verfügbarer Port).
 
 ## Build für Produktion
 

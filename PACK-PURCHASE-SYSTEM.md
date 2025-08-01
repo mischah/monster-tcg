@@ -1,5 +1,31 @@
 # 🛒 Booster Pack Display Purchase System
 
+## 🚀 Development Setup
+
+### **Live Development Server**
+Das Projekt verwendet **Vite** als Development-Server mit Live-Reload:
+
+```bash
+# Development Server starten
+npm run dev
+
+# Build für Produktion
+npm run build
+
+# Preview der Build-Version
+npm run preview
+```
+
+**Features:**
+- ⚡ **Instant Hot Reload** - Änderungen werden sofort im Browser sichtbar
+- 🔄 **HMR (Hot Module Replacement)** - Keine vollständigen Seitenreloads nötig
+- 📦 **ES6 Module Support** - Moderne JavaScript-Features
+- 🚀 **Optimierte Performance** - Schneller als herkömmliche Server
+
+**Server läuft auf:** `http://localhost:3003/` (oder nächster verfügbarer Port)
+
+---
+
 ## ✅ Completed Features
 
 ### 🎯 Core Functionality
