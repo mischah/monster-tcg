@@ -5,10 +5,19 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    host: true
+    host: true,
+    hmr: {
+      overlay: true
+    }
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    sourcemap: true
+  },
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
   }
 })
