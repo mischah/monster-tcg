@@ -24,8 +24,21 @@ export class Game {
         
         // Load game data or initialize starter cards
         this.saveManager.loadGameData();
-        this.ui.initializeEventListeners();
+        
+        // Verzögere Event-Listener Setup um sicherzustellen dass DOM bereit ist
+        setTimeout(() => {
+            this.ui.initializeEventListeners();
+        }, 100);
+        
         this.ui.updateDisplay();
+        
+        // Update collection value
+        this.collectionManager.updateCollectionValue();
+        
+        // Test sell system
+        setTimeout(() => {
+            this.collectionManager.testSellSystem();
+        }, 500);
         
         // Initialize shop displays
         this.shopManager.initializeBoosterDisplays();
@@ -35,6 +48,43 @@ export class Game {
         
         // Start auto-save
         this.saveManager.startAutoSave();
+        
+        // Globale Test-Funktion für Browser-Konsole
+        window.testSell = () => {
+            console.log('=== SELL SYSTEM TEST ===');
+            console.log('Game instance:', this);
+            console.log('Collection size:', this.collection.length);
+            console.log('Current coins:', this.coins);
+            console.log('Sell mode active:', this.collectionManager.sellModeActive);
+            
+            // Teste Toggle-Button
+            const toggleBtn = document.getElementById('toggle-sell-mode');
+            console.log('Toggle button:', toggleBtn);
+            if (toggleBtn) {
+                console.log('Toggle button text:', toggleBtn.textContent);
+                console.log('Toggle button classList:', toggleBtn.classList.toString());
+            }
+            
+            // Teste Modal
+            const sellModal = document.getElementById('card-sell-modal');
+            console.log('Sell modal:', sellModal);
+            if (sellModal) {
+                console.log('Modal display style:', sellModal.style.display);
+            }
+            
+            // Teste Collection Value
+            const valueElement = document.getElementById('collection-value');
+            console.log('Collection value element:', valueElement);
+            if (valueElement) {
+                console.log('Collection value text:', valueElement.textContent);
+            }
+            
+            // Teste Event-Listener
+            if (toggleBtn) {
+                console.log('Testing toggle button click...');
+                toggleBtn.click();
+            }
+        };
     }
 
     initializeStarterCards() {

@@ -21,6 +21,14 @@
 - ✅ Manager-Pattern für bessere Code-Organisation
 - ✅ Vite Development Server Integration
 
+### 4. **💰 Kartenverwaltungssystem**
+- ✅ Kartenverkauf-System für strategisches Münzmanagement
+- ✅ Preisberechnung basierend auf Kartenseltenheit (15-150 Münzen)
+- ✅ Verkaufsmodus mit visuellen Indikatoren und Animationen
+- ✅ Bestätigungsmodal mit Kartenvorschau und Sicherheitswarnung
+- ✅ Live-Berechnung des Sammlungswerts in der UI
+- ✅ Automatische Deck-Bereinigung bei verkauften Karten
+
 ## 🚀 **Technische Verbesserungen**
 
 ### **Development Experience:**
@@ -57,6 +65,7 @@
 - 🛒 **Shop-System** - 3 Pack-Typen, Display-Purchases, Animationen
 - ⚔️ **Kampf-System** - Monster-Battles, Damage-Berechnung, Rewards
 - 🃏 **Deck-Builder** - Drag & Drop, Auto-Build, Deck-Analyse
+- 💰 **Kartenverwaltung** - Kartenverkauf, Preisberechnung, Sammlungswert
 - 💾 **Save-System** - Auto-Save, Import/Export, LocalStorage
 - 🎨 **UI-System** - Responsive Design, Animationen, Modal-Dialoge
 
@@ -66,7 +75,7 @@ Game.js (Orchestrierung)
 ├── ShopManager (Pack-System)
 ├── BattleManager (Kampf-Logic)
 ├── DeckManager (Deck-Builder)
-├── CollectionManager (Sammlung)
+├── CollectionManager (Sammlung + Verkauf)
 ├── SaveManager (Speicher-System)
 └── UIManager (Interface)
 ```

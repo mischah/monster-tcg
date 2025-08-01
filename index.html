@@ -65,6 +65,11 @@
                         <option value="legendary">Legendär</option>
                     </select>
                     <input type="text" id="search-cards" placeholder="Karten suchen...">
+                    <div class="collection-mode-toggle">
+                        <button id="toggle-sell-mode" class="mode-toggle" title="Verkaufsmodus aktivieren">
+                            💰 Verkaufen
+                        </button>
+                    </div>
                 </div>
                 <div id="card-grid" class="card-grid"></div>
             </section>
@@ -326,6 +331,30 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <div id="modal-card-details"></div>
+        </div>
+    </div>
+
+    <!-- Card Selling Modal -->
+    <div id="card-sell-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-sell-details">
+                <h3>💰 Karte verkaufen</h3>
+                <div id="sell-card-preview"></div>
+                <div class="sell-info">
+                    <div class="sell-price">
+                        <span class="price-label">Verkaufspreis:</span>
+                        <span id="sell-price-value" class="price-value">0 Münzen</span>
+                    </div>
+                    <div class="sell-warning">
+                        ⚠️ Diese Aktion kann nicht rückgängig gemacht werden!
+                    </div>
+                </div>
+                <div class="sell-actions">
+                    <button id="confirm-sell-btn" class="sell-btn confirm">Verkaufen</button>
+                    <button id="cancel-sell-btn" class="sell-btn cancel">Abbrechen</button>
+                </div>
+            </div>
         </div>
     </div>
 

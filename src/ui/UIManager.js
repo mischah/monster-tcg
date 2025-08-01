@@ -9,6 +9,11 @@ export class UIManager {
         
         // Update Collection Statistics
         this.updateCollectionStats();
+        
+        // Update collection value
+        if (this.game.collectionManager) {
+            this.game.collectionManager.updateCollectionValue();
+        }
     }
 
     updateCollectionStats() {
@@ -244,6 +249,17 @@ export class UIManager {
     }
 
     initializeEventListeners() {
+        // Warte darauf, dass DOM vollständig geladen ist
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupEventListeners();
+            });
+        } else {
+            this.setupEventListeners();
+        }
+    }
+
+    setupEventListeners() {
         // Tab-Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -274,6 +290,14 @@ export class UIManager {
         document.getElementById('import-save-input').addEventListener('change', (e) => {
             this.game.saveManager.importSaveData(e.target.files[0]);
         });
+
+        // Collection Selling
+        const toggleSellBtn = document.getElementById('toggle-sell-mode');
+        if (toggleSellBtn) {
+            toggleSellBtn.addEventListener('click', () => {
+                this.game.collectionManager.toggleSellMode();
+            });
+        }
 
         // Save/Load Controls
         document.getElementById('manual-save-btn').addEventListener('click', () => {
@@ -330,9 +354,38 @@ export class UIManager {
             document.getElementById('card-modal').style.display = 'none';
         });
 
+        // Sell Modal Event Listeners
+        const sellModal = document.getElementById('card-sell-modal');
+        if (sellModal) {
+            const sellModalClose = sellModal.querySelector('.close');
+            const confirmSellBtn = document.getElementById('confirm-sell-btn');
+            const cancelSellBtn = document.getElementById('cancel-sell-btn');
+            
+            if (sellModalClose) {
+                sellModalClose.addEventListener('click', () => {
+                    this.game.collectionManager.closeSellModal();
+                });
+            }
+
+            if (confirmSellBtn) {
+                confirmSellBtn.addEventListener('click', () => {
+                    this.game.collectionManager.confirmSell();
+                });
+            }
+
+            if (cancelSellBtn) {
+                cancelSellBtn.addEventListener('click', () => {
+                    this.game.collectionManager.closeSellModal();
+                });
+            }
+        }
+
         window.addEventListener('click', (e) => {
             if (e.target === document.getElementById('card-modal')) {
                 document.getElementById('card-modal').style.display = 'none';
+            }
+            if (e.target === sellModal) {
+                this.game.collectionManager.closeSellModal();
             }
         });
     }

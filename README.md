@@ -21,9 +21,17 @@ Ein modernes Browser-basiertes Trading Card Game mit Monstern! Sammle, kämpfe u
 - **Belohnungssystem** - gewinne Münzen durch Siege
 - **Automatische Heilung** nach Kämpfen
 
-### 🎴 Deck-Builder (Coming Soon)
-- Baue dein perfektes 10-Karten-Deck
-- Strategische Kartenauswahl für optimale Synergien
+### 🎴 Deck-Builder
+- **Drag & Drop Interface** zum Zusammenstellen deines Kampfdecks
+- **Auto-Build Funktion** für optimale Deck-Zusammenstellung
+- **Deck-Analyse** mit Seltenheits-Verteilung und Power-Statistiken
+- **Maximum 10 Karten** pro Deck für ausgewogene Kämpfe
+
+### 💰 Kartenverwaltung
+- **Kartenverkauf-System** - Verkaufe Karten für Münzen
+- **Strategische Preisgestaltung** - 15-150 Münzen je nach Seltenheit
+- **Sicherer Verkaufsprozess** mit Bestätigungsmodal
+- **Live-Sammlungswert** - Verfolge den Wert deiner Sammlung
 
 ## 🚀 Schnellstart
 
@@ -37,6 +45,7 @@ Ein modernes Browser-basiertes Trading Card Game mit Monstern! Sammle, kämpfe u
 
 ### 💰 Münzen verdienen
 - Gewinne Kämpfe in der Arena (25 Münzen pro Sieg)
+- Verkaufe Karten, die du nicht brauchst (15-150 Münzen)
 - Nutze starke Monster mit hohen Angriffswerten
 - Achte auf die Balance zwischen Angriff und Verteidigung
 
