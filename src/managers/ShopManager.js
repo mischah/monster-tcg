@@ -239,7 +239,9 @@ export class ShopManager {
                 revealedCardsContainer.appendChild(cardElement);
                 
                 // Spezielle Effekte für seltene Karten
-                if (card.rarity === 'legendary') {
+                if (card.rarity === 'ultra-rare') {
+                    this.playUltraRareEffect();
+                } else if (card.rarity === 'legendary') {
                     this.playLegendaryEffect();
                 } else if (card.rarity === 'epic') {
                     this.playEpicEffect();
@@ -356,7 +358,8 @@ export class ShopManager {
             'common': 'Häufig',
             'rare': 'Selten',
             'epic': 'Episch',
-            'legendary': 'Legendär'
+            'legendary': 'Legendär',
+            'ultra-rare': 'Ultra-Selten'
         };
         return rarityTexts[rarity] || 'Unbekannt';
     }
@@ -383,6 +386,40 @@ export class ShopManager {
                 }, 2000);
             }, i * 100);
         }
+    }
+
+    playUltraRareEffect() {
+        // Ultra-rare effect: Rainbow explosion with screen shake
+        document.body.style.animation = 'screen-shake 0.5s ease-in-out';
+        
+        // Rainbow particles explosion
+        const colors = ['#ff0000', '#ff8000', '#ffff00', '#80ff00', '#00ff00', '#00ff80', '#00ffff', '#0080ff', '#0000ff', '#8000ff', '#ff00ff', '#ff0080'];
+        for (let i = 0; i < 30; i++) {
+            setTimeout(() => {
+                const particle = document.createElement('div');
+                particle.textContent = ['⭐', '💎', '👑', '🔥', '⚡', '🌈'][Math.floor(Math.random() * 6)];
+                particle.style.position = 'fixed';
+                particle.style.left = (Math.random() * window.innerWidth) + 'px';
+                particle.style.top = (Math.random() * window.innerHeight) + 'px';
+                particle.style.fontSize = (2 + Math.random() * 2) + 'rem';
+                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.zIndex = '9999';
+                particle.style.pointerEvents = 'none';
+                particle.style.animation = 'ultra-particle-explosion 3s ease-out forwards';
+                particle.style.textShadow = '0 0 10px currentColor';
+                
+                document.body.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 3000);
+            }, i * 50);
+        }
+        
+        // Remove screen shake after animation
+        setTimeout(() => {
+            document.body.style.animation = '';
+        }, 500);
     }
 
     playEpicEffect() {

@@ -17,7 +17,7 @@ export class UIManager {
     }
 
     updateCollectionStats() {
-        const rarityCount = { common: 0, rare: 0, epic: 0, legendary: 0 };
+        const rarityCount = { common: 0, rare: 0, epic: 0, legendary: 0, 'ultra-rare': 0 };
         
         this.game.collection.forEach(card => {
             rarityCount[card.rarity]++;

@@ -76,7 +76,8 @@ export class CollectionManager {
             common: 15,
             rare: 40,
             epic: 80,
-            legendary: 150
+            legendary: 150,
+            'ultra-rare': 500  // Ultra-rare monsters are extremely valuable
         };
         return rarityValues[card.rarity] || 10;
     }
@@ -103,6 +104,15 @@ export class CollectionManager {
     showSellConfirmation(card) {
         this.currentSellCard = card;
         
+        // Special warning for ultra-rare cards
+        if (card.rarity === 'ultra-rare') {
+            const ultraWarning = confirm('⚠️ ACHTUNG: Dies ist eine ULTRA-SELTENE Karte (1 in 10.000)! Bist du dir absolut sicher, dass du sie verkaufen möchtest?');
+            if (!ultraWarning) {
+                this.currentSellCard = null;
+                return;
+            }
+        }
+        
         const modal = document.getElementById('card-sell-modal');
         const preview = document.getElementById('sell-card-preview');
         const priceValue = document.getElementById('sell-price-value');
@@ -121,6 +131,13 @@ export class CollectionManager {
         // Verkaufspreis anzeigen
         const sellPrice = this.getCardValue(card);
         priceValue.textContent = `${sellPrice} Münzen`;
+        
+        // Ultra-rare styling for the modal if needed
+        if (card.rarity === 'ultra-rare') {
+            modal.classList.add('ultra-rare-modal');
+        } else {
+            modal.classList.remove('ultra-rare-modal');
+        }
         
         // Modal öffnen
         modal.style.display = 'block';

@@ -75,7 +75,7 @@ export class DeckManager {
                 case 'health':
                     return b.maxHealth - a.maxHealth;
                 case 'rarity':
-                    const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4 };
+                    const rarityOrder = { common: 1, rare: 2, epic: 3, legendary: 4, 'ultra-rare': 5 };
                     return rarityOrder[b.rarity] - rarityOrder[a.rarity];
                 case 'name':
                 default:
@@ -185,13 +185,14 @@ export class DeckManager {
         
         // Nehme die besten Karten, aber achte auf Balance
         const rarityLimits = {
+            'ultra-rare': Math.min(1, Math.floor(this.maxDeckSize * 0.1)), // Only 1 ultra-rare max
             legendary: Math.min(3, Math.floor(this.maxDeckSize * 0.3)),
             epic: Math.min(3, Math.floor(this.maxDeckSize * 0.3)),
             rare: Math.min(4, Math.floor(this.maxDeckSize * 0.4)),
             common: this.maxDeckSize
         };
         
-        const deckByRarity = { legendary: [], epic: [], rare: [], common: [] };
+        const deckByRarity = { 'ultra-rare': [], legendary: [], epic: [], rare: [], common: [] };
         
         // Verteile Karten nach Seltenheit
         for (const card of sortedCards) {
@@ -202,6 +203,7 @@ export class DeckManager {
         
         // Fülle Deck mit den besten Karten jeder Seltenheit
         this.game.deck = [
+            ...deckByRarity['ultra-rare'],
             ...deckByRarity.legendary,
             ...deckByRarity.epic,
             ...deckByRarity.rare,
@@ -258,7 +260,7 @@ export class DeckManager {
         }
         
         // Update Seltenheits-Verteilung
-        const rarityCount = { common: 0, rare: 0, epic: 0, legendary: 0 };
+        const rarityCount = { common: 0, rare: 0, epic: 0, legendary: 0, 'ultra-rare': 0 };
         this.game.deck.forEach(card => {
             rarityCount[card.rarity]++;
         });
@@ -282,7 +284,7 @@ export class DeckManager {
             if (element) element.textContent = '0';
         });
         
-        ['common', 'rare', 'epic', 'legendary'].forEach(rarity => {
+        ['common', 'rare', 'epic', 'legendary', 'ultra-rare'].forEach(rarity => {
             const countElement = document.getElementById(`${rarity}-count`);
             const barElement = document.getElementById(`${rarity}-bar`);
             

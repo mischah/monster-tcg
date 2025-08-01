@@ -147,6 +147,18 @@ export const MONSTER_DATABASE = [
     { name: "Unendlichkeit", image: "unendlichkeit", emoji: "♾️", attack: 76, defense: 56, health: 260, rarity: "legendary", description: "Verkörperung der Unendlichkeit selbst." },
     { name: "Schöpfergott", image: "schoepfergott", emoji: "✨", attack: 100, defense: 70, health: 350, rarity: "legendary", description: "Der Erschaffer aller Monster und Welten." },
     
+    // Ultra-Seltene Monster (0,0001% Drop-Rate) - Die mächtigsten Wesen im Universum
+    { name: "Weltenzerstörer", image: "weltenzerstoerer", emoji: "🌌💥", attack: 150, defense: 100, health: 500, rarity: "ultra-rare", description: "Vernichtet ganze Galaxien mit einem Gedanken. Die ultimative Macht der Zerstörung." },
+    { name: "Allmächtig", image: "allmaechtig", emoji: "👁️‍🗨️", attack: 200, defense: 150, health: 777, rarity: "ultra-rare", description: "Das Wesen jenseits aller Vorstellungskraft. Kennt keine Grenzen der Macht." },
+    { name: "Universumshüter", image: "universumshuter", emoji: "🛡️🌌", attack: 120, defense: 200, health: 666, rarity: "ultra-rare", description: "Beschützer aller Realitäten. Unendliche Verteidigung gegen das Chaos." },
+    { name: "Zeitherr", image: "zeitherr", emoji: "⏰👑", attack: 175, defense: 125, health: 555, rarity: "ultra-rare", description: "Meister über alle Zeitlinien. Kann die Geschichte selbst umschreiben." },
+    { name: "Göttergeißel", image: "goettergeist", emoji: "👻⚡", attack: 220, defense: 80, health: 444, rarity: "ultra-rare", description: "Selbst die Götter fürchten dieses Wesen. Reine Macht ohne Grenzen." },
+    { name: "Nexusdrache", image: "nexusdrache", emoji: "🐉🌟", attack: 180, defense: 160, health: 600, rarity: "ultra-rare", description: "Verbindet alle Dimensionen. Drache des absoluten Nexus der Realität." },
+    { name: "Voidkönig", image: "voidkoenig", emoji: "🕳️👑", attack: 250, defense: 50, health: 333, rarity: "ultra-rare", description: "Herrscher über die absolute Leere. Verschlingt die Existenz selbst." },
+    { name: "Quantengott", image: "quantengott", emoji: "⚛️✨", attack: 160, defense: 140, health: 520, rarity: "ultra-rare", description: "Kontrolliert die fundamentalen Kräfte der Physik. Unberechenbar mächtig." },
+    { name: "Archetyp", image: "archetyp", emoji: "🔱🌟", attack: 190, defense: 110, health: 480, rarity: "ultra-rare", description: "Das Urbild aller Monster. Von ihm stammen alle anderen Kreaturen ab." },
+    { name: "Paradoxon", image: "paradoxon", emoji: "🌀❓", attack: 300, defense: 1, health: 1, rarity: "ultra-rare", description: "Ein Widerspruch in sich. Unendlicher Angriff aber minimale Verteidigung." },
+
     // Zusätzliche häufige Monster (15)
     { name: "Blumengeist", image: "blumengeist", emoji: "🌺", attack: 19, defense: 17, health: 73, rarity: "common", description: "Erweckt verwelkte Blumen zum Leben." },
     { name: "Metallkäfer", image: "metallkaefer", emoji: "🪲", attack: 22, defense: 19, health: 78, rarity: "common", description: "Sein Panzer glänzt wie poliertes Metall." },
@@ -176,13 +188,14 @@ export function getRandomMonsterByRarity(guaranteedRarity = null) {
         rarity = guaranteedRarity;
     } else {
         const rand = Math.random();
-        if (rand < 0.6) rarity = "common";      // 60%
-        else if (rand < 0.85) rarity = "rare"; // 25%
-        else if (rand < 0.97) rarity = "epic"; // 12%
-        else rarity = "legendary";              // 3%
+        if (rand < 0.5999) rarity = "common";      // 59.99%
+        else if (rand < 0.8499) rarity = "rare";   // 25%
+        else if (rand < 0.9699) rarity = "epic";   // 12%
+        else if (rand < 0.9999) rarity = "legendary"; // 3%
+        else rarity = "ultra-rare";                // 0.01% (1 in 10.000)
     }
 
-    for (let i = 0; i < 50; i++) { // Genug Versuche
+    for (let i = 0; i < 100; i++) { // Erhöhe Versuche für ultra-rare
         const monster = getRandomMonster();
         if (monster.rarity === rarity) {
             return monster;

@@ -58,11 +58,12 @@
                 </div>
                 <div class="filter-bar">
                     <select id="rarity-filter">
-                        <option value="all">Alle Seltenheiten</option>
-                        <option value="common">Häufig</option>
-                        <option value="rare">Selten</option>
-                        <option value="epic">Episch</option>
-                        <option value="legendary">Legendär</option>
+                        <option value="all" data-translate="collection.filterAll">Alle Seltenheiten</option>
+                        <option value="common" data-translate="collection.filterCommon">Häufig</option>
+                        <option value="rare" data-translate="collection.filterRare">Selten</option>
+                        <option value="epic" data-translate="collection.filterEpic">Episch</option>
+                        <option value="legendary" data-translate="collection.filterLegendary">Legendär</option>
+                        <option value="ultra-rare" data-translate="collection.filterUltraRare">Ultra-Selten</option>
                     </select>
                     <input type="text" id="search-cards" placeholder="Karten suchen...">
                     <div class="collection-mode-toggle">
@@ -292,6 +293,13 @@
                                         </div>
                                         <span id="legendary-count" class="rarity-count">0</span>
                                     </div>
+                                    <div class="rarity-bar ultra-rare">
+                                        <span class="rarity-label">Ultra-Selten</span>
+                                        <div class="rarity-progress">
+                                            <div id="ultra-rare-bar" class="progress-fill"></div>
+                                        </div>
+                                        <span id="ultra-rare-count" class="rarity-count">0</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -308,6 +316,7 @@
                                     <option value="rare">Selten</option>
                                     <option value="epic">Episch</option>
                                     <option value="legendary">Legendär</option>
+                                    <option value="ultra-rare">Ultra-Selten</option>
                                 </select>
                                 <select id="deck-sort-filter">
                                     <option value="name">Nach Name</option>
