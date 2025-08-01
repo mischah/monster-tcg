@@ -1,0 +1,317 @@
+/* Monster Image System - CSS Sprites Alternative */
+
+/* Base Monster Image Styling */
+.monster-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--monster-color-primary), var(--monster-color-secondary));
+    border: 2px solid var(--monster-border-color);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.monster-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 70%
+    );
+    animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Monster-spezifische Farben und Styles */
+.monster-feuerdrache {
+    --monster-color-primary: #ff4444;
+    --monster-color-secondary: #cc2222;
+    --monster-border-color: #ff6666;
+}
+
+.monster-waldgeist {
+    --monster-color-primary: #44aa44;
+    --monster-color-secondary: #228822;
+    --monster-border-color: #66cc66;
+}
+
+.monster-blitzwolf {
+    --monster-color-primary: #ffff44;
+    --monster-color-secondary: #cccc22;
+    --monster-border-color: #ffff66;
+}
+
+.monster-steingigant {
+    --monster-color-primary: #888888;
+    --monster-color-secondary: #666666;
+    --monster-border-color: #aaaaaa;
+}
+
+.monster-wasserschlange {
+    --monster-color-primary: #4444ff;
+    --monster-color-secondary: #2222cc;
+    --monster-border-color: #6666ff;
+}
+
+.monster-kristallbaer {
+    --monster-color-primary: #ff44ff;
+    --monster-color-secondary: #cc22cc;
+    --monster-border-color: #ff66ff;
+}
+
+.monster-schattenrabe {
+    --monster-color-primary: #444444;
+    --monster-color-secondary: #222222;
+    --monster-border-color: #666666;
+}
+
+.monster-flammenphoenix {
+    --monster-color-primary: #ff8800;
+    --monster-color-secondary: #cc6600;
+    --monster-border-color: #ffaa22;
+}
+
+.monster-eiswaechter {
+    --monster-color-primary: #88ffff;
+    --monster-color-secondary: #66cccc;
+    --monster-border-color: #aaffff;
+}
+
+.monster-sternendrache {
+    --monster-color-primary: #ffaa00;
+    --monster-color-secondary: #cc8800;
+    --monster-border-color: #ffcc22;
+}
+
+.monster-urzeittytan {
+    --monster-color-primary: #aa8844;
+    --monster-color-secondary: #886622;
+    --monster-border-color: #ccaa66;
+}
+
+.monster-geisterherr {
+    --monster-color-primary: #aa44aa;
+    --monster-color-secondary: #882288;
+    --monster-border-color: #cc66cc;
+}
+
+.monster-regenbogeneinhorn {
+    --monster-color-primary: #ff88ff;
+    --monster-color-secondary: #cc66cc;
+    --monster-border-color: #ffaaff;
+    background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00, #88ff00, #0088ff, #8800ff, #ff0088);
+    background-size: 400% 400%;
+    animation: rainbow-gradient 3s ease infinite;
+}
+
+@keyframes rainbow-gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.monster-kosmosdrache {
+    --monster-color-primary: #4488ff;
+    --monster-color-secondary: #2266cc;
+    --monster-border-color: #66aaff;
+    background: radial-gradient(circle, #000011 0%, #001155 50%, #0033aa 100%);
+    position: relative;
+}
+
+.monster-kosmosdrache::after {
+    content: '✦ ✧ ★ ☆';
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    right: 10%;
+    bottom: 10%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    color: #ffffff;
+    font-size: 0.8rem;
+    animation: twinkle 2s infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.monster-zeitwaechter {
+    --monster-color-primary: #ffaa88;
+    --monster-color-secondary: #cc8866;
+    --monster-border-color: #ffccaa;
+    background: conic-gradient(from 0deg, #ffaa88, #cc8866, #aa6644, #ffaa88);
+    animation: time-rotation 10s linear infinite;
+}
+
+@keyframes time-rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Rarity-specific enhancements */
+.monster-image.common {
+    filter: brightness(0.9);
+}
+
+.monster-image.rare {
+    filter: brightness(1.1) saturate(1.2);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), 0 0 10px rgba(59, 130, 246, 0.4);
+}
+
+.monster-image.epic {
+    filter: brightness(1.2) saturate(1.4);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(168, 85, 247, 0.6);
+}
+
+.monster-image.legendary {
+    filter: brightness(1.3) saturate(1.6) contrast(1.1);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.8);
+    animation: legendary-pulse 2s infinite alternate;
+}
+
+@keyframes legendary-pulse {
+    0% { 
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.8);
+        transform: scale(1);
+    }
+    100% { 
+        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 215, 0, 1);
+        transform: scale(1.02);
+    }
+}
+
+/* Monster Symbol Styling */
+.monster-symbol {
+    position: relative;
+    z-index: 2;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+/* Hover effects */
+.monster-image:hover .monster-symbol {
+    transform: scale(1.1) rotate(5deg);
+    transition: transform 0.3s ease;
+}
+
+/* Pack Images */
+.pack-image-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.pack-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--pack-color-primary), var(--pack-color-secondary));
+    border: 2px solid var(--pack-border-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.pack-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.pack-basic {
+    --pack-color-primary: #4CAF50;
+    --pack-color-secondary: #2E7D32;
+    --pack-border-color: #66BB6A;
+}
+
+.pack-premium {
+    --pack-color-primary: #9C27B0;
+    --pack-color-secondary: #6A1B9A;
+    --pack-border-color: #BA68C8;
+}
+
+.pack-legendary {
+    --pack-color-primary: #FFD700;
+    --pack-color-secondary: #FFA000;
+    --pack-border-color: #FFEB3B;
+    background: linear-gradient(45deg, #FFD700, #FFA000, #FF8F00, #FFD700);
+    background-size: 300% 300%;
+    animation: legendary-pack-glow 2s ease infinite;
+}
+
+@keyframes legendary-pack-glow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Pack Icon Enhancements */
+.pack-icon {
+    font-size: 2.5rem;
+    padding: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    transition: all 0.3s ease;
+}
+
+.pack-icon.pack-basic {
+    background: radial-gradient(circle, #4CAF50 0%, #2E7D32 100%);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+.pack-icon.pack-premium {
+    background: radial-gradient(circle, #9C27B0 0%, #6A1B9A 100%);
+    box-shadow: 0 0 15px rgba(156, 39, 176, 0.5);
+    animation: premium-pulse 2s infinite alternate;
+}
+
+.pack-icon.pack-legendary {
+    background: radial-gradient(circle, #FFD700 0%, #FF8F00 100%);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+    animation: legendary-pack-shine 2s infinite alternate;
+}
+
+@keyframes premium-pulse {
+    0% { box-shadow: 0 0 15px rgba(156, 39, 176, 0.5); }
+    100% { box-shadow: 0 0 25px rgba(156, 39, 176, 0.8); }
+}
+
+@keyframes legendary-pack-shine {
+    0% { 
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        transform: scale(1);
+    }
+    100% { 
+        box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+        transform: scale(1.05);
+    }
+}
+
+.display-pack:hover .pack-icon {
+    transform: scale(1.1) rotate(5deg);
+}

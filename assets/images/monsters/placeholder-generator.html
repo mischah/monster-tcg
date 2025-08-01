@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Image Generator</title>
+    <style>
+        canvas { margin: 10px; border: 1px solid #ccc; }
+        .monster-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Monster Image Generator</h1>
+    <div class="monster-grid" id="monsterGrid"></div>
+    
+    <script>
+        const monsters = [
+            // Häufige Monster
+            { name: "feuerdrache", color: "#ff4444", symbol: "🐉" },
+            { name: "waldgeist", color: "#44aa44", symbol: "🌲" },
+            { name: "blitzwolf", color: "#ffff44", symbol: "⚡" },
+            { name: "steingigant", color: "#888888", symbol: "🗿" },
+            { name: "wasserschlange", color: "#4444ff", symbol: "🌊" },
+            
+            // Seltene Monster
+            { name: "kristallbaer", color: "#ff44ff", symbol: "💎" },
+            { name: "schattenrabe", color: "#444444", symbol: "🌙" },
+            { name: "flammenphoenix", color: "#ff8800", symbol: "🔥" },
+            { name: "eiswaechter", color: "#88ffff", symbol: "❄️" },
+            
+            // Epische Monster
+            { name: "sternendrache", color: "#ffaa00", symbol: "⭐" },
+            { name: "urzeittytan", color: "#aa8844", symbol: "🦕" },
+            { name: "geisterherr", color: "#aa44aa", symbol: "👻" },
+            
+            // Legendäre Monster
+            { name: "regenbogeneinhorn", color: "#ff88ff", symbol: "🦄" },
+            { name: "kosmosdrache", color: "#4488ff", symbol: "🌌" },
+            { name: "zeitwaechter", color: "#ffaa88", symbol: "⏰" }
+        ];
+
+        function generateMonsterImage(monster, size = 128) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Gradient background
+            const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            gradient.addColorStop(0, monster.color);
+            gradient.addColorStop(1, '#000000');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Symbol in der Mitte
+            ctx.font = `${size * 0.5}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText(monster.symbol, size/2, size/2);
+            
+            // Border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(2, 2, size-4, size-4);
+            
+            return canvas;
+        }
+
+        function downloadImage(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Generate all monster images
+        const grid = document.getElementById('monsterGrid');
+        monsters.forEach(monster => {
+            const canvas = generateMonsterImage(monster);
+            const container = document.createElement('div');
+            
+            const title = document.createElement('h3');
+            title.textContent = monster.name;
+            
+            const button = document.createElement('button');
+            button.textContent = 'Download';
+            button.onclick = () => downloadImage(canvas, `${monster.name}.png`);
+            
+            container.appendChild(title);
+            container.appendChild(canvas);
+            container.appendChild(button);
+            grid.appendChild(container);
+        });
+    </script>
+</body>
+</html>

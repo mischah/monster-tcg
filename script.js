@@ -1,10 +1,11 @@
 // Monster TCG Game Logic
 
 class Monster {
-    constructor(name, emoji, attack, defense, health, rarity, description) {
+    constructor(name, emoji, attack, defense, health, rarity, description, image = null) {
         this.id = Math.random().toString(36).substr(2, 9);
         this.name = name;
         this.emoji = emoji;
+        this.image = image || name.toLowerCase().replace(/[^a-z0-9]/g, '');
         this.attack = attack;
         this.defense = defense;
         this.health = health;
@@ -57,27 +58,27 @@ class Game {
     getRandomMonster() {
         const monsters = [
             // Häufige Monster
-            { name: "Feuerdrache", emoji: "🐉", attack: 25, defense: 15, health: 80, rarity: "common", description: "Ein kleiner aber mutiger Drache mit feurigem Temperament." },
-            { name: "Waldgeist", emoji: "🌲", attack: 20, defense: 20, health: 90, rarity: "common", description: "Ein friedlicher Waldgeist, der die Natur beschützt." },
-            { name: "Blitzwolf", emoji: "⚡", attack: 30, defense: 10, health: 70, rarity: "common", description: "Schnell wie der Blitz und genauso gefährlich." },
-            { name: "Steingigant", emoji: "🗿", attack: 15, defense: 30, health: 120, rarity: "common", description: "Langsam aber unglaublich robust und stark." },
-            { name: "Wasserschlange", emoji: "🌊", attack: 22, defense: 18, health: 85, rarity: "common", description: "Gleitet durch Wasser wie durch Luft." },
+            { name: "Feuerdrache", image: "feuerdrache", emoji: "🐉", attack: 25, defense: 15, health: 80, rarity: "common", description: "Ein kleiner aber mutiger Drache mit feurigem Temperament." },
+            { name: "Waldgeist", image: "waldgeist", emoji: "🌲", attack: 20, defense: 20, health: 90, rarity: "common", description: "Ein friedlicher Waldgeist, der die Natur beschützt." },
+            { name: "Blitzwolf", image: "blitzwolf", emoji: "⚡", attack: 30, defense: 10, health: 70, rarity: "common", description: "Schnell wie der Blitz und genauso gefährlich." },
+            { name: "Steingigant", image: "steingigant", emoji: "🗿", attack: 15, defense: 30, health: 120, rarity: "common", description: "Langsam aber unglaublich robust und stark." },
+            { name: "Wasserschlange", image: "wasserschlange", emoji: "🌊", attack: 22, defense: 18, health: 85, rarity: "common", description: "Gleitet durch Wasser wie durch Luft." },
             
             // Seltene Monster
-            { name: "Kristallbär", emoji: "💎", attack: 35, defense: 25, health: 110, rarity: "rare", description: "Mit Kristallen gepanzerter Bär von magischer Macht." },
-            { name: "Schattenrabe", emoji: "🌙", attack: 40, defense: 15, health: 95, rarity: "rare", description: "Meister der Schatten und nächtlicher Jäger." },
-            { name: "Flammenphönix", emoji: "🔥", attack: 45, defense: 20, health: 100, rarity: "rare", description: "Wiedergeboren aus der Asche mit erneuterter Macht." },
-            { name: "Eiswächter", emoji: "❄️", attack: 30, defense: 35, health: 130, rarity: "rare", description: "Hüter der ewigen Gletscher des Nordens." },
+            { name: "Kristallbär", image: "kristallbaer", emoji: "💎", attack: 35, defense: 25, health: 110, rarity: "rare", description: "Mit Kristallen gepanzerter Bär von magischer Macht." },
+            { name: "Schattenrabe", image: "schattenrabe", emoji: "🌙", attack: 40, defense: 15, health: 95, rarity: "rare", description: "Meister der Schatten und nächtlicher Jäger." },
+            { name: "Flammenphönix", image: "flammenphoenix", emoji: "🔥", attack: 45, defense: 20, health: 100, rarity: "rare", description: "Wiedergeboren aus der Asche mit erneuterter Macht." },
+            { name: "Eiswächter", image: "eiswaechter", emoji: "❄️", attack: 30, defense: 35, health: 130, rarity: "rare", description: "Hüter der ewigen Gletscher des Nordens." },
             
             // Epische Monster
-            { name: "Sternendrache", emoji: "⭐", attack: 55, defense: 30, health: 150, rarity: "epic", description: "Ein legendärer Drache, der die Macht der Sterne nutzt." },
-            { name: "Urzeittytan", emoji: "🦕", attack: 50, defense: 40, health: 180, rarity: "epic", description: "Ein Gigant aus vergangenen Zeitaltern." },
-            { name: "Geisterherr", emoji: "👻", attack: 60, defense: 20, health: 120, rarity: "epic", description: "Beherrscher der Unterwelt und Geister." },
+            { name: "Sternendrache", image: "sternendrache", emoji: "⭐", attack: 55, defense: 30, health: 150, rarity: "epic", description: "Ein legendärer Drache, der die Macht der Sterne nutzt." },
+            { name: "Urzeittytan", image: "urzeittytan", emoji: "🦕", attack: 50, defense: 40, health: 180, rarity: "epic", description: "Ein Gigant aus vergangenen Zeitaltern." },
+            { name: "Geisterherr", image: "geisterherr", emoji: "👻", attack: 60, defense: 20, health: 120, rarity: "epic", description: "Beherrscher der Unterwelt und Geister." },
             
             // Legendäre Monster
-            { name: "Regenbogeneinhorn", emoji: "🦄", attack: 70, defense: 50, health: 200, rarity: "legendary", description: "Das seltenste und mächtigste aller magischen Wesen." },
-            { name: "Kosmosdrache", emoji: "🌌", attack: 80, defense: 45, health: 220, rarity: "legendary", description: "Hüter des Universums mit unermesslicher Macht." },
-            { name: "Zeitwächter", emoji: "⏰", attack: 75, defense: 55, health: 250, rarity: "legendary", description: "Manipuliert die Zeit selbst und ist quasi unsterblich." }
+            { name: "Regenbogeneinhorn", image: "regenbogeneinhorn", emoji: "🦄", attack: 70, defense: 50, health: 200, rarity: "legendary", description: "Das seltenste und mächtigste aller magischen Wesen." },
+            { name: "Kosmosdrache", image: "kosmosdrache", emoji: "🌌", attack: 80, defense: 45, health: 220, rarity: "legendary", description: "Hüter des Universums mit unermesslicher Macht." },
+            { name: "Zeitwächter", image: "zeitwaechter", emoji: "⏰", attack: 75, defense: 55, health: 250, rarity: "legendary", description: "Manipuliert die Zeit selbst und ist quasi unsterblich." }
         ];
 
         return monsters[Math.floor(Math.random() * monsters.length)];
@@ -325,8 +326,8 @@ class Game {
         }
 
         if (this.coins < cost) {
-            alert('💸 Nicht genügend Münzen!');
-            return;
+            this.showSaveIndicator('💸 Nicht genügend Münzen!', 'error');
+            return false; // Zeige an, dass der Kauf fehlgeschlagen ist
         }
 
         this.coins -= cost;
@@ -340,6 +341,8 @@ class Game {
         // Pack-Opening Animation starten
         this.showPackOpening(newCards, packType);
         this.updateDisplay();
+        
+        return true; // Zeige an, dass der Kauf erfolgreich war
     }
 
     generatePackCards(packType, cardCount, guaranteedRare) {
@@ -426,7 +429,9 @@ class Game {
                 cardElement.style.animationDelay = `${index * 0.2}s`;
                 
                 cardElement.innerHTML = `
-                    <div class="card-emoji">${card.emoji}</div>
+                    <div class="card-emoji monster-image ${card.image}">
+                        <div class="monster-symbol">${card.emoji}</div>
+                    </div>
                     <div class="card-name">${card.name}</div>
                     <div class="card-rarity">${this.getRarityText(card.rarity)}</div>
                 `;
@@ -564,7 +569,9 @@ class Game {
         
         card.innerHTML = `
             <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
-            <div class="card-image">${monster.emoji}</div>
+            <div class="card-image monster-image ${monster.image}">
+                <div class="monster-symbol">${monster.emoji}</div>
+            </div>
             <div class="card-name">${monster.name}</div>
             <div class="card-stats">
                 <div class="stat-item">
@@ -599,7 +606,9 @@ class Game {
         details.innerHTML = `
             <div class="monster-card ${monster.rarity}" style="max-width: none; margin: 20px 0;">
                 <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
-                <div class="card-image" style="height: 150px; font-size: 4rem;">${monster.emoji}</div>
+                <div class="card-image monster-image ${monster.image}" style="height: 150px;">
+                    <div class="monster-symbol" style="font-size: 4rem;">${monster.emoji}</div>
+                </div>
                 <div class="card-name" style="font-size: 1.5rem;">${monster.name}</div>
                 <div class="card-stats">
                     <div class="stat-item">
@@ -634,7 +643,7 @@ class Game {
             if (monster.isAlive()) {
                 const option = document.createElement('option');
                 option.value = monster.id;
-                option.textContent = `${monster.emoji} ${monster.name} (${monster.health}/${monster.maxHealth} HP)`;
+                option.textContent = `${monster.name} (${monster.health}/${monster.maxHealth} HP)`;
                 select.appendChild(option);
             }
         });
@@ -812,7 +821,9 @@ class Game {
         card.innerHTML = `
             <button class="remove-from-deck" onclick="game.removeFromDeck(${index})" title="Aus Deck entfernen">×</button>
             <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
-            <div class="card-image">${monster.emoji}</div>
+            <div class="card-image monster-image ${monster.image}">
+                <div class="monster-symbol">${monster.emoji}</div>
+            </div>
             <div class="card-name">${monster.name}</div>
             <div class="card-stats">
                 <div class="stat-item">
@@ -891,7 +902,9 @@ class Game {
         
         card.innerHTML = `
             <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
-            <div class="card-image">${monster.emoji}</div>
+            <div class="card-image monster-image ${monster.image}">
+                <div class="monster-symbol">${monster.emoji}</div>
+            </div>
             <div class="card-name">${monster.name}</div>
             <div class="card-stats">
                 <div class="stat-item">
@@ -1366,15 +1379,15 @@ class Game {
         pack.dataset.packType = packType;
         pack.dataset.packIndex = index;
         
-        // Pack-spezifische Emojis
-        const packEmojis = {
-            'basic': '📦',
-            'premium': '✨',
-            'legendary': '🌟'
+        // Pack-spezifische Icons mit CSS-Klassen
+        const packIcons = {
+            'basic': '<div class="pack-icon pack-basic">📦</div>',
+            'premium': '<div class="pack-icon pack-premium">✨</div>',
+            'legendary': '<div class="pack-icon pack-legendary">🌟</div>'
         };
         
         pack.innerHTML = `
-            <div class="pack-icon">${packEmojis[packType]}</div>
+            ${packIcons[packType]}
             <div class="pack-number">#${index + 1}</div>
         `;
         
@@ -1388,17 +1401,48 @@ class Game {
     }
 
     buyPackFromDisplay(packType, packElement) {
-        // Erst Pack kaufen
-        this.buyPack(packType);
+        // Prüfe zuerst ob genügend Münzen vorhanden sind
+        let cost;
+        if (packType === 'basic') cost = 50;
+        else if (packType === 'premium') cost = 100;
+        else if (packType === 'legendary') cost = 250;
         
-        // Dann Pack als verkauft markieren
-        packElement.classList.add('sold-out');
-        packElement.innerHTML = `
-            <div class="pack-icon sold">❌</div>
-            <div class="pack-status">Verkauft</div>
-        `;
+        if (this.coins < cost) {
+            this.showPurchaseIndicator(`💸 Nicht genügend Münzen! Benötigt: ${cost}`, 'error');
+            // Shaking Animation für nicht genügend Münzen
+            packElement.style.animation = 'pack-denied 0.5s ease-in-out';
+            setTimeout(() => {
+                packElement.style.animation = '';
+            }, 500);
+            return;
+        }
         
-        this.showPurchaseIndicator(`${this.getPackTypeName(packType)} gekauft!`, 'success');
+        // Purchase Animation hinzufügen
+        packElement.classList.add('purchasing');
+        
+        // Nach kurzer Animation das Pack kaufen
+        setTimeout(() => {
+            // Erst Pack kaufen
+            const purchaseSuccess = this.buyPack(packType);
+            
+            if (purchaseSuccess) {
+                // Pack als verkauft markieren
+                packElement.classList.remove('purchasing');
+                packElement.classList.add('sold-out');
+                packElement.innerHTML = `
+                    <div class="pack-icon sold">❌</div>
+                    <div class="pack-status">Verkauft</div>
+                `;
+                
+                // Shop-Statistiken aktualisieren
+                this.updateShopStats();
+                
+                this.showPurchaseIndicator(`${this.getPackTypeName(packType)} gekauft!`, 'success');
+            } else {
+                // Bei Fehler Animation entfernen
+                packElement.classList.remove('purchasing');
+            }
+        }, 600);
     }
 
     getPackTypeName(packType) {
@@ -1411,7 +1455,23 @@ class Game {
     }
 
     showPurchaseIndicator(message, type = 'success') {
-        this.showSaveIndicator(message, type);
+        if (type === 'success') {
+            // Erstelle eine spezielle Purchase Success Anzeige
+            const indicator = document.createElement('div');
+            indicator.className = 'pack-purchase-success';
+            indicator.innerHTML = `✅ ${message}`;
+            document.body.appendChild(indicator);
+            
+            // Entferne nach Animation
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 2500);
+        } else {
+            // Für Fehler verwende das normale System
+            this.showSaveIndicator(message, type);
+        }
     }
 
     restockBoosterDisplays() {
