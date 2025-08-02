@@ -83,7 +83,7 @@ export const MONSTER_DATABASE = [
     { name: "Steinphönix", image: "steinphoenix", emoji: "🗿", attack: 35, defense: 30, health: 128, rarity: "rare", description: "Wiedergeboren aus zerfallenem Gestein." },
     { name: "Mondwolf", image: "mondwolf", emoji: "🌙", attack: 38, defense: 21, health: 107, rarity: "rare", description: "Heult bei Vollmond mit magischer Kraft." },
     { name: "Korallenwächter", image: "korallenwachter", emoji: "🪸", attack: 32, defense: 33, health: 133, rarity: "rare", description: "Beschützer der Meeresriffe." },
-    { name: "Blütentiger", image: "blutentiger", emoji: "🌸", attack: 41, defense: 20, health: 109, rarity: "rare", description: "Seine Streifen sind lebende Blüten." },
+    { name: "Blütentiger", image: "bluetentiger", emoji: "🌸", attack: 41, defense: 20, health: 109, rarity: "rare", description: "Seine Streifen sind lebende Blüten." },
     { name: "Glasspinne", image: "glasspinne", emoji: "🕸️", attack: 36, defense: 15, health: 89, rarity: "rare", description: "Webt Netze aus reinem Kristallglas." },
     { name: "Schneeleopard", image: "schneeleopard", emoji: "❄️", attack: 40, defense: 22, health: 111, rarity: "rare", description: "Jäger der höchsten Gipfel." },
     { name: "Sonnenechse", image: "sonnenechse", emoji: "☀️", attack: 42, defense: 18, health: 104, rarity: "rare", description: "Speichert Sonnenlicht als Energie." },
