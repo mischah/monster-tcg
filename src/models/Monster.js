@@ -4,7 +4,12 @@ export class Monster {
         this.id = Math.random().toString(36).substr(2, 9);
         this.name = name;
         this.emoji = emoji;
-        this.image = image || name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        this.image = image || name.toLowerCase()
+            .replace(/ä/g, 'ae')
+            .replace(/ö/g, 'oe')
+            .replace(/ü/g, 'ue')
+            .replace(/ß/g, 'ss')
+            .replace(/[^a-z0-9]/g, '');
         this.attack = attack;
         this.defense = defense;
         this.health = health;

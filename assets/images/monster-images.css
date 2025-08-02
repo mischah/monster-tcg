@@ -1,4 +1,4 @@
-/* Monster Image System - CSS Sprites Alternative */
+/* Monster Image System - Real Images */
 
 /* Base Monster Image Styling */
 .monster-image {
@@ -7,12 +7,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
     border-radius: 10px;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--monster-color-primary), var(--monster-color-secondary));
-    border: 2px solid var(--monster-border-color);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -30,6 +31,12 @@
         transparent 70%
     );
     animation: shimmer 3s infinite linear;
+    z-index: 1;
+}
+
+/* Hide emoji symbols when using real images */
+.monster-image .monster-symbol {
+    display: none;
 }
 
 @keyframes shimmer {
@@ -347,92 +354,173 @@
     transform: scale(1.1) rotate(5deg);
 }
 
-/* Monster-spezifische Farben für Ultra-Rare Monster */
-.monster-weltenzerstoerer {
-    --monster-color-primary: #ff0080;
-    --monster-color-secondary: #8000ff;
-    --monster-border-color: #ff00ff;
-    background: linear-gradient(45deg, #000000, #ff0080, #8000ff, #000000);
-    background-size: 400% 400%;
-    animation: destruction-pulse 2s ease infinite;
-}
+/* Auto-generated Monster Image Classes - Real Images */
 
-.monster-allmaechtig {
-    --monster-color-primary: #ffffff;
-    --monster-color-secondary: #cccccc;
-    --monster-border-color: #ffffff;
-    background: radial-gradient(circle, #ffffff 0%, #cccccc 50%, #888888 100%);
-    animation: omnipotent-glow 3s ease infinite alternate;
-}
+/* Haeufige Monster */
+.monster-image.feuerdrache { background-image: url('./monsters/feuerdrache.png'); }
+.monster-image.waldgeist { background-image: url('./monsters/waldgeist.png'); }
+.monster-image.blitzwolf { background-image: url('./monsters/blitzwolf.png'); }
+.monster-image.steingigant { background-image: url('./monsters/steingigant.png'); }
+.monster-image.wasserschlange { background-image: url('./monsters/wasserschlange.png'); }
+.monster-image.glutkaefer { background-image: url('./monsters/glutkaefer.png'); }
+.monster-image.steinmaus { background-image: url('./monsters/steinmaus.png'); }
+.monster-image.windvogel { background-image: url('./monsters/windvogel.png'); }
+.monster-image.erdwurm { background-image: url('./monsters/erdwurm.png'); }
+.monster-image.lichtfalter { background-image: url('./monsters/lichtfalter.png'); }
+.monster-image.frostfrosch { background-image: url('./monsters/frostfrosch.png'); }
+.monster-image.wuestenskink { background-image: url('./monsters/wuestenskink.png'); }
+.monster-image.dunkelspinne { background-image: url('./monsters/dunkelspinne.png'); }
+.monster-image.schneehase { background-image: url('./monsters/schneehase.png'); }
+.monster-image.steinbock { background-image: url('./monsters/steinbock.png'); }
+.monster-image.glutschlange { background-image: url('./monsters/glutschlange.png'); }
+.monster-image.nebelkatze { background-image: url('./monsters/nebelkatze.png'); }
+.monster-image.donnerbaer { background-image: url('./monsters/donnerbaer.png'); }
+.monster-image.kristallmotte { background-image: url('./monsters/kristallmotte.png'); }
+.monster-image.sandgeist { background-image: url('./monsters/sandgeist.png'); }
+.monster-image.wasserkaefer { background-image: url('./monsters/wasserkaefer.png'); }
+.monster-image.bergziege { background-image: url('./monsters/bergziege.png'); }
+.monster-image.flammenameise { background-image: url('./monsters/flammenameise.png'); }
+.monster-image.eispinguin { background-image: url('./monsters/eispinguin.png'); }
+.monster-image.waldspinne { background-image: url('./monsters/waldspinne.png'); }
+.monster-image.feuerameise { background-image: url('./monsters/feuerameise.png'); }
+.monster-image.schneeeule { background-image: url('./monsters/schneeeule.png'); }
+.monster-image.wassersalamander { background-image: url('./monsters/wassersalamander.png'); }
+.monster-image.steinechse { background-image: url('./monsters/steinechse.png'); }
+.monster-image.windwiesel { background-image: url('./monsters/windwiesel.png'); }
+.monster-image.gluehkaefer { background-image: url('./monsters/gluehkaefer.png'); }
+.monster-image.lehmgolem { background-image: url('./monsters/lehmgolem.png'); }
+.monster-image.blasenfisch { background-image: url('./monsters/blasenfisch.png'); }
+.monster-image.kieselkrabbe { background-image: url('./monsters/kieselkrabbe.png'); }
+.monster-image.glutmader { background-image: url('./monsters/glutmader.png'); }
+.monster-image.eisbaer { background-image: url('./monsters/eisbaer.png'); }
+.monster-image.schattenmaus { background-image: url('./monsters/schattenmaus.png'); }
+.monster-image.wassermolch { background-image: url('./monsters/wassermolch.png'); }
+.monster-image.steinratte { background-image: url('./monsters/steinratte.png'); }
+.monster-image.windmotte { background-image: url('./monsters/windmotte.png'); }
+.monster-image.glutwurm { background-image: url('./monsters/glutwurm.png'); }
+.monster-image.frostmuecke { background-image: url('./monsters/frostmuecke.png'); }
+.monster-image.bergmurmel { background-image: url('./monsters/bergmurmel.png'); }
+.monster-image.wasserwanze { background-image: url('./monsters/wasserwanze.png'); }
+.monster-image.sandkaefer { background-image: url('./monsters/sandkaefer.png'); }
+.monster-image.nachtfalter { background-image: url('./monsters/nachtfalter.png'); }
+.monster-image.steinwurm { background-image: url('./monsters/steinwurm.png'); }
+.monster-image.glutfalke { background-image: url('./monsters/glutfalke.png'); }
+.monster-image.schmelzschnecke { background-image: url('./monsters/schmelzschnecke.png'); }
+.monster-image.windspinne { background-image: url('./monsters/windspinne.png'); }
+.monster-image.kristallwurm { background-image: url('./monsters/kristallwurm.png'); }
+.monster-image.nachtechse { background-image: url('./monsters/nachtechse.png'); }
+.monster-image.wasserfloh { background-image: url('./monsters/wasserfloh.png'); }
+.monster-image.glutgecko { background-image: url('./monsters/glutgecko.png'); }
+.monster-image.bergfink { background-image: url('./monsters/bergfink.png'); }
+.monster-image.schattenwurm { background-image: url('./monsters/schattenwurm.png'); }
+.monster-image.eisfuchs { background-image: url('./monsters/eisfuchs.png'); }
+.monster-image.steinmotte { background-image: url('./monsters/steinmotte.png'); }
+.monster-image.blumengeist { background-image: url('./monsters/blumengeist.png'); }
+.monster-image.metallkaefer { background-image: url('./monsters/metallkaefer.png'); }
+.monster-image.schaumfrosch { background-image: url('./monsters/schaumfrosch.png'); }
+.monster-image.rauchgeist { background-image: url('./monsters/rauchgeist.png'); }
+.monster-image.kristallbiene { background-image: url('./monsters/kristallbiene.png'); }
+.monster-image.steinpilz { background-image: url('./monsters/steinpilz.png'); }
+.monster-image.windrose { background-image: url('./monsters/windrose.png'); }
+.monster-image.salzkristall { background-image: url('./monsters/salzkristall.png'); }
+.monster-image.nebelschleier { background-image: url('./monsters/nebelschleier.png'); }
+.monster-image.mondstaub { background-image: url('./monsters/mondstaub.png'); }
+.monster-image.regentropfen { background-image: url('./monsters/regentropfen.png'); }
+.monster-image.sonnenschein { background-image: url('./monsters/sonnenschein.png'); }
+.monster-image.sternlicht { background-image: url('./monsters/sternlicht.png'); }
+.monster-image.wolkentanz { background-image: url('./monsters/wolkentanz.png'); }
+.monster-image.meeresrauschen { background-image: url('./monsters/meeresrauschen.png'); }
 
-.monster-universumshuter {
-    --monster-color-primary: #0066ff;
-    --monster-color-secondary: #003388;
-    --monster-border-color: #0088ff;
-    background: linear-gradient(135deg, #000033, #0066ff, #00aaff, #000033);
-    background-size: 300% 300%;
-    animation: universe-guard 4s ease infinite;
-}
+/* Seltene Monster */
+.monster-image.kristallbaer { background-image: url('./monsters/kristallbaer.png'); }
+.monster-image.schattenrabe { background-image: url('./monsters/schattenrabe.png'); }
+.monster-image.flammenphoenix { background-image: url('./monsters/flammenphoenix.png'); }
+.monster-image.eiswaechter { background-image: url('./monsters/eiswaechter.png'); }
+.monster-image.blitzjaeger { background-image: url('./monsters/blitzjaeger.png'); }
+.monster-image.magmagolem { background-image: url('./monsters/magmagolem.png'); }
+.monster-image.sturmadler { background-image: url('./monsters/sturmadler.png'); }
+.monster-image.tiefseekraken { background-image: url('./monsters/tiefseekraken.png'); }
+.monster-image.nebelgeist { background-image: url('./monsters/nebelgeist.png'); }
+.monster-image.lavadrache { background-image: url('./monsters/lavadrache.png'); }
+.monster-image.frostloewe { background-image: url('./monsters/frostloewe.png'); }
+.monster-image.donnerfalke { background-image: url('./monsters/donnerfalke.png'); }
+.monster-image.erdriese { background-image: url('./monsters/erdriese.png'); }
+.monster-image.wassernixe { background-image: url('./monsters/wassernixe.png'); }
+.monster-image.windgeist { background-image: url('./monsters/windgeist.png'); }
+.monster-image.steinphoenix { background-image: url('./monsters/steinphoenix.png'); }
+.monster-image.mondwolf { background-image: url('./monsters/mondwolf.png'); }
+.monster-image.korallenwachter { background-image: url('./monsters/korallenwaechter.png'); }
+.monster-image.blutentiger { background-image: url('./monsters/bluetentiger.png'); }
+.monster-image.glasspinne { background-image: url('./monsters/glasspinne.png'); }
+.monster-image.schneeleopard { background-image: url('./monsters/schneeleopard.png'); }
+.monster-image.sonnenechse { background-image: url('./monsters/sonnenechse.png'); }
+.monster-image.nebeldrache { background-image: url('./monsters/nebeldrache.png'); }
+.monster-image.kristallwolf { background-image: url('./monsters/kristallwolf.png'); }
+.monster-image.feuervogel { background-image: url('./monsters/feuervogel.png'); }
+.monster-image.tiefenhai { background-image: url('./monsters/tiefenhai.png'); }
+.monster-image.berggeist { background-image: url('./monsters/berggeist.png'); }
+.monster-image.lichtwiesel { background-image: url('./monsters/lichtwiesel.png'); }
+.monster-image.glutbaer { background-image: url('./monsters/glutbaer.png'); }
+.monster-image.sturmrabe { background-image: url('./monsters/sturmrabe.png'); }
+.monster-image.wasserloewe { background-image: url('./monsters/wasserloewe.png'); }
+.monster-image.steinadler { background-image: url('./monsters/steinadler.png'); }
+.monster-image.nachtjaeger { background-image: url('./monsters/nachtjaeger.png'); }
+.monster-image.regenbogenfisch { background-image: url('./monsters/regenbogenfisch.png'); }
+.monster-image.winddrache { background-image: url('./monsters/winddrache.png'); }
+.monster-image.lavaschlange { background-image: url('./monsters/lavaschlange.png'); }
+.monster-image.eiskristall { background-image: url('./monsters/eiskristall.png'); }
+.monster-image.glutwolf { background-image: url('./monsters/glutwolf.png'); }
 
-.monster-zeitherr {
-    --monster-color-primary: #ffaa00;
-    --monster-color-secondary: #cc8800;
-    --monster-border-color: #ffcc00;
-    background: conic-gradient(from 0deg, #ffaa00, #cc8800, #aa6600, #ffaa00);
-    animation: time-master 8s linear infinite;
-}
+/* Epische Monster */
+.monster-image.sternendrache { background-image: url('./monsters/sternendrache.png'); }
+.monster-image.urzeittytan { background-image: url('./monsters/urzeittytan.png'); }
+.monster-image.geisterherr { background-image: url('./monsters/geisterherr.png'); }
+.monster-image.galaxienphoenix { background-image: url('./monsters/galaxienphoenix.png'); }
+.monster-image.chaosdrache { background-image: url('./monsters/chaosdrache.png'); }
+.monster-image.plasmageist { background-image: url('./monsters/plasmageist.png'); }
+.monster-image.voidkraken { background-image: url('./monsters/voidkraken.png'); }
+.monster-image.elementarlord { background-image: url('./monsters/elementarlord.png'); }
+.monster-image.traumwandler { background-image: url('./monsters/traumwandler.png'); }
+.monster-image.schattentitan { background-image: url('./monsters/schattentitan.png'); }
+.monster-image.kristalldrache { background-image: url('./monsters/kristalldrache.png'); }
+.monster-image.seelensammler { background-image: url('./monsters/seelensammler.png'); }
+.monster-image.feuertitan { background-image: url('./monsters/feuertitan.png'); }
+.monster-image.eisherrscher { background-image: url('./monsters/eisherrscher.png'); }
+.monster-image.blitzkaiser { background-image: url('./monsters/blitzkaiser.png'); }
+.monster-image.naturgeist { background-image: url('./monsters/naturgeist.png'); }
+.monster-image.sturmkoenig { background-image: url('./monsters/sturmkoenig.png'); }
+.monster-image.lichtbringer { background-image: url('./monsters/lichtbringer.png'); }
+.monster-image.erdmutter { background-image: url('./monsters/erdmutter.png'); }
+.monster-image.leerwandler { background-image: url('./monsters/leerwandler.png'); }
+.monster-image.zeitsturm { background-image: url('./monsters/zeitsturm.png'); }
 
-.monster-goettergeist {
-    --monster-color-primary: #aa00aa;
-    --monster-color-secondary: #660066;
-    --monster-border-color: #cc00cc;
-    background: radial-gradient(circle, #aa00aa 0%, #660066 50%, #330033 100%);
-    animation: god-slayer-aura 2.5s ease infinite alternate;
-}
+/* Legendaere Monster */
+.monster-image.regenbogeneinhorn { background-image: url('./monsters/regenbogeneinhorn.png'); }
+.monster-image.kosmosdrache { background-image: url('./monsters/kosmosdrache.png'); }
+.monster-image.zeitwaechter { background-image: url('./monsters/zeitwaechter.png'); }
+.monster-image.omnimacht { background-image: url('./monsters/omnimacht.png'); }
+.monster-image.realitaetsweber { background-image: url('./monsters/realitaetsweber.png'); }
+.monster-image.urkraft { background-image: url('./monsters/urkraft.png'); }
+.monster-image.ewigkeitsherr { background-image: url('./monsters/ewigkeitsherr.png'); }
+.monster-image.seelenfuerst { background-image: url('./monsters/seelenfuerst.png'); }
+.monster-image.chaosimperator { background-image: url('./monsters/chaosimperator.png'); }
+.monster-image.lebensspender { background-image: url('./monsters/lebensspender.png'); }
+.monster-image.todesfuerst { background-image: url('./monsters/todesfuerst.png'); }
+.monster-image.dimensional { background-image: url('./monsters/dimensional.png'); }
+.monster-image.unendlichkeit { background-image: url('./monsters/unendlichkeit.png'); }
+.monster-image.schoepfergott { background-image: url('./monsters/schoepfergott.png'); }
 
-.monster-nexusdrache {
-    --monster-color-primary: #ff8800;
-    --monster-color-secondary: #cc6600;
-    --monster-border-color: #ffaa00;
-    background: linear-gradient(45deg, #ff8800, #ffaa00, #ffcc00, #ff8800);
-    background-size: 300% 300%;
-    animation: nexus-energy 3s ease infinite;
-}
-
-.monster-voidkoenig {
-    --monster-color-primary: #000000;
-    --monster-color-secondary: #111111;
-    --monster-border-color: #333333;
-    background: radial-gradient(circle, #000000 0%, #111111 70%, #222222 100%);
-    animation: void-pulse 2s ease infinite alternate;
-}
-
-.monster-quantengott {
-    --monster-color-primary: #00ffff;
-    --monster-color-secondary: #0088aa;
-    --monster-border-color: #00ccff;
-    background: linear-gradient(45deg, #00ffff, #0088aa, #006688, #00ffff);
-    background-size: 200% 200%;
-    animation: quantum-flux 1.5s ease infinite;
-}
-
-.monster-archetyp {
-    --monster-color-primary: #ffdd00;
-    --monster-color-secondary: #ccaa00;
-    --monster-border-color: #ffee00;
-    background: linear-gradient(135deg, #ffdd00, #ccaa00, #aa8800, #ffdd00);
-    background-size: 400% 400%;
-    animation: archetype-shine 4s ease infinite;
-}
-
-.monster-paradoxon {
-    --monster-color-primary: #ff0000;
-    --monster-color-secondary: #00ff00;
-    --monster-border-color: #0000ff;
-    background: linear-gradient(90deg, #ff0000 25%, #00ff00 50%, #0000ff 75%, #ff0000);
-    background-size: 400% 100%;
-    animation: paradox-shift 1s linear infinite;
-}
+/* Ultra-Seltene Monster */
+.monster-image.weltenzerstoerer { background-image: url('./monsters/weltenzerstoerer.png'); }
+.monster-image.allmaechtig { background-image: url('./monsters/allmaechtig.png'); }
+.monster-image.universumshuter { background-image: url('./monsters/universumshueter.png'); }
+.monster-image.zeitherr { background-image: url('./monsters/zeitherr.png'); }
+.monster-image.goettergeist { background-image: url('./monsters/goettergeissel.png'); }
+.monster-image.nexusdrache { background-image: url('./monsters/nexusdrache.png'); }
+.monster-image.voidkoenig { background-image: url('./monsters/voidkoenig.png'); }
+.monster-image.quantengott { background-image: url('./monsters/quantengott.png'); }
+.monster-image.archetyp { background-image: url('./monsters/archetyp.png'); }
+.monster-image.paradoxon { background-image: url('./monsters/paradoxon.png'); }
 
 /* Ultra-Rare spezifische Animationen */
 @keyframes destruction-pulse {

@@ -20,7 +20,7 @@ export const MONSTER_DATABASE = [
     { name: "Steinbock", image: "steinbock", emoji: "🐐", attack: 23, defense: 20, health: 88, rarity: "common", description: "Klettert mühelos steile Felswände hinauf." },
     { name: "Glutschlange", image: "glutschlange", emoji: "🐍", attack: 27, defense: 13, health: 74, rarity: "common", description: "Ihre Haut glüht wie heiße Kohle." },
     { name: "Nebelkatze", image: "nebelkatze", emoji: "🐱", attack: 21, defense: 15, health: 76, rarity: "common", description: "Verschwindet geschickt im Nebel." },
-    { name: "Donnerbär", image: "donnerbraer", emoji: "🐻", attack: 24, defense: 19, health: 92, rarity: "common", description: "Sein Brüllen klingt wie Donner." },
+    { name: "Donnerbär", image: "donnerbaer", emoji: "🐻", attack: 24, defense: 19, health: 92, rarity: "common", description: "Sein Brüllen klingt wie Donner." },
     { name: "Kristallmotte", image: "kristallmotte", emoji: "🦋", attack: 17, defense: 11, health: 63, rarity: "common", description: "Ihre Flügel schimmern wie Kristalle." },
     { name: "Sandgeist", image: "sandgeist", emoji: "👻", attack: 25, defense: 14, health: 71, rarity: "common", description: "Formt sich aus Wüstensand." },
     { name: "Wasserkäfer", image: "wasserkaefer", emoji: "🪲", attack: 15, defense: 21, health: 82, rarity: "common", description: "Schwimmt geschickt unter Wasser." },
