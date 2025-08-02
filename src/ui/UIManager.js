@@ -313,6 +313,30 @@ export class UIManager {
             });
         }
 
+        // Multi-Selection Controls
+        const selectAllBtn = document.getElementById('select-all-cards');
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                this.game.collectionManager.selectAllCards();
+            });
+        }
+
+        const clearSelectionBtn = document.getElementById('clear-selection-btn');
+        if (clearSelectionBtn) {
+            clearSelectionBtn.addEventListener('click', () => {
+                this.game.collectionManager.clearSelection();
+            });
+        }
+
+        const sellSelectedBtn = document.getElementById('sell-selected-btn');
+        if (sellSelectedBtn) {
+            sellSelectedBtn.addEventListener('click', () => {
+                console.log('🔄 Sell Selected Button clicked!');
+                console.log('🔄 Selected cards:', this.game.collectionManager.selectedCards.size);
+                this.game.collectionManager.showMultiSellConfirmation();
+            });
+        }
+
         // Save/Load Controls
         document.getElementById('manual-save-btn').addEventListener('click', () => {
             this.game.saveManager.manualSave();

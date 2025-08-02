@@ -3,6 +3,7 @@ export class CollectionManager {
         this.game = game;
         this.sellModeActive = false;
         this.currentSellCard = null;
+        this.selectedCards = new Set(); // Für Multi-Selection
         
         // Virtualisierung für Performance
         this.cardsPerPage = this.getOptimalCardsPerPage();
@@ -133,14 +134,21 @@ export class CollectionManager {
                 const monster = cards[i];
                 const cardElement = this.game.ui.createCardElement(monster);
                 
+                // Überprüfe ob Karte ausgewählt ist
+                const cardKey = this.getCardKey(monster);
+                if (this.selectedCards.has(cardKey)) {
+                    cardElement.classList.add('selected');
+                }
+                
                 // Event Listener mit Performance-Optimierung
-                cardElement.addEventListener('click', () => {
+                cardElement.addEventListener('click', (e) => {
+                    e.preventDefault();
                     if (this.sellModeActive) {
-                        this.showSellConfirmation(monster);
+                        this.toggleCardSelection(monster, cardElement);
                     } else {
                         this.game.ui.showCardDetails(monster);
                     }
-                }, { passive: true });
+                }, { passive: false });
                 
                 fragment.appendChild(cardElement);
             }
@@ -272,14 +280,21 @@ export class CollectionManager {
             // Neue Karte erstellen
             const cardElement = this.game.ui.createCardElement(monsterData);
             
+            // Überprüfe ob Karte ausgewählt ist
+            const cardKey = this.getCardKey(monsterData);
+            if (this.selectedCards.has(cardKey)) {
+                cardElement.classList.add('selected');
+            }
+            
             // Event Listener hinzufügen
-            cardElement.addEventListener('click', () => {
+            cardElement.addEventListener('click', (e) => {
+                e.preventDefault();
                 if (this.sellModeActive) {
-                    this.showSellConfirmation(monsterData);
+                    this.toggleCardSelection(monsterData, cardElement);
                 } else {
                     this.game.ui.showCardDetails(monsterData);
                 }
-            }, { passive: true });
+            }, { passive: false });
             
             // Platzhalter durch echte Karte ersetzen
             placeholder.parentNode.replaceChild(cardElement, placeholder);
@@ -349,15 +364,33 @@ export class CollectionManager {
         this.sellModeActive = !this.sellModeActive;
         
         const toggleBtn = document.getElementById('toggle-sell-mode');
+        const selectAllBtn = document.getElementById('select-all-cards');
+        const multiSellBar = document.getElementById('multi-sell-bar');
+        
         if (toggleBtn) {
             if (this.sellModeActive) {
                 toggleBtn.classList.add('active');
                 toggleBtn.textContent = '❌ Abbrechen';
                 toggleBtn.title = 'Verkaufsmodus deaktivieren';
+                
+                // "Alle auswählen" Button anzeigen
+                selectAllBtn.classList.remove('hidden');
+                
+                // Multi-Sell Bar vorbereiten
+                multiSellBar.classList.remove('hidden');
             } else {
                 toggleBtn.classList.remove('active');
                 toggleBtn.textContent = '💰 Verkaufen';
                 toggleBtn.title = 'Verkaufsmodus aktivieren';
+                
+                // "Alle auswählen" Button verstecken
+                selectAllBtn.classList.add('hidden');
+                
+                // Multi-Sell Bar verstecken
+                multiSellBar.classList.add('hidden');
+                
+                // Auswahl zurücksetzen
+                this.clearSelection();
             }
         }
         
@@ -384,14 +417,23 @@ export class CollectionManager {
                 // Entferne alte Event Listener (clone-Trick)
                 const newCardElement = cardElement.cloneNode(true);
                 
+                // Überprüfe ob Karte ausgewählt ist
+                const cardKey = this.getCardKey(monster);
+                if (this.selectedCards.has(cardKey)) {
+                    newCardElement.classList.add('selected');
+                } else {
+                    newCardElement.classList.remove('selected');
+                }
+                
                 // Neue Event Listener hinzufügen
-                newCardElement.addEventListener('click', () => {
+                newCardElement.addEventListener('click', (e) => {
+                    e.preventDefault();
                     if (this.sellModeActive) {
-                        this.showSellConfirmation(monster);
+                        this.toggleCardSelection(monster, newCardElement);
                     } else {
                         this.game.ui.showCardDetails(monster);
                     }
-                }, { passive: true });
+                }, { passive: false });
                 
                 cardElement.parentNode.replaceChild(newCardElement, cardElement);
             }
@@ -400,11 +442,31 @@ export class CollectionManager {
         // Auch Platzhalter-Bereiche berücksichtigen
         const placeholders = grid.querySelectorAll('.card-placeholder');
         placeholders.forEach(placeholder => {
-            // Re-hydrate placeholder to apply sell mode
             if (placeholder.dataset.monsterData) {
-                this.rehydratePlaceholder(placeholder);
+                try {
+                    const monsterData = JSON.parse(placeholder.dataset.monsterData);
+                    const cardKey = this.getCardKey(monsterData);
+                    
+                    // Überprüfe Auswahl-Status
+                    if (this.sellModeActive && this.selectedCards.has(cardKey)) {
+                        placeholder.classList.add('selected-placeholder');
+                        placeholder.style.border = '3px solid #ffd700';
+                        placeholder.style.background = 'rgba(255, 215, 0, 0.1)';
+                        placeholder.innerHTML = '✅ Ausgewählt';
+                    } else {
+                        placeholder.classList.remove('selected-placeholder');
+                        placeholder.style.border = '';
+                        placeholder.style.background = 'rgba(255, 255, 255, 0.05)';
+                        placeholder.innerHTML = '📱 Karte virtualisiert';
+                    }
+                } catch (error) {
+                    console.error('Error updating placeholder selection:', error);
+                }
             }
         });
+        
+        // Multi-Sell Bar aktualisieren
+        this.updateMultiSellBar();
     }
 
     showSellConfirmation(card) {
@@ -422,10 +484,14 @@ export class CollectionManager {
         const modal = document.getElementById('card-sell-modal');
         const preview = document.getElementById('sell-card-preview');
         const priceValue = document.getElementById('sell-price-value');
+        const modalTitle = document.getElementById('sell-modal-title');
         
         if (!modal || !preview || !priceValue) {
             return;
         }
+        
+        // Modal-Titel anpassen
+        modalTitle.textContent = '💰 Karte verkaufen';
         
         // Karte im Modal anzeigen
         preview.innerHTML = '';
@@ -449,7 +515,367 @@ export class CollectionManager {
         modal.style.display = 'block';
     }
 
+    // Multi-Selection Methoden
+    getCardKey(card, collectionArray = null) {
+        // Verwende Array-Index für eindeutige Keys bei Duplikaten
+        const sourceArray = collectionArray || this.game.collection;
+        const cardIndex = sourceArray.indexOf(card);
+        
+        if (cardIndex === -1) {
+            // Fallback für Karten die nicht direkt gefunden werden
+            return `${card.name}_${card.rarity}_${card.attack}_${card.defense}_${card.health}_${Date.now()}_${Math.random()}`;
+        }
+        
+        return `card_${cardIndex}_${card.name}_${card.rarity}`;
+    }
+
+    toggleCardSelection(card, cardElement) {
+        const cardKey = this.getCardKey(card);
+        
+        if (this.selectedCards.has(cardKey)) {
+            // Karte deselektieren
+            this.selectedCards.delete(cardKey);
+            cardElement.classList.remove('selected');
+        } else {
+            // Karte selektieren
+            this.selectedCards.add(cardKey);
+            cardElement.classList.add('selected');
+        }
+        
+        this.updateMultiSellBar();
+    }
+
+    selectAllCards() {
+        // Debug: Zeige aktuelle Filter-Situation
+        const totalCards = this.game.collection.length;
+        const filteredCards = this.filteredCards.length;
+        
+        console.log(`🔍 Filter-Debug: ${totalCards} Karten total, ${filteredCards} nach Filter`);
+        
+        // Prüfe ob Filter aktiv sind
+        const rarityFilter = document.getElementById('rarity-filter').value;
+        const searchTerm = document.getElementById('search-cards').value.toLowerCase();
+        const hasActiveFilters = rarityFilter !== 'all' || searchTerm.length > 0;
+        
+        if (hasActiveFilters) {
+            // Frage den User ob er alle oder nur gefilterte Karten verkaufen möchte
+            const choice = confirm(
+                `🤔 Filter sind aktiv!\n\n` +
+                `Gefilterte Karten: ${filteredCards}\n` +
+                `Gesamte Sammlung: ${totalCards}\n\n` +
+                `Möchten Sie ALLE ${totalCards} Karten aus Ihrer Sammlung auswählen?\n\n` +
+                `✅ OK = Alle ${totalCards} Karten\n` +
+                `❌ Abbrechen = Nur gefilterte ${filteredCards} Karten`
+            );
+            
+            if (choice) {
+                // Alle Karten aus der kompletten Sammlung auswählen
+                this.game.collection.forEach(card => {
+                    const cardKey = this.getCardKey(card);
+                    this.selectedCards.add(cardKey);
+                });
+                
+                console.log(`✅ Alle ${totalCards} Karten aus Sammlung ausgewählt`);
+                
+                // Feedback
+                this.game.ui.showSaveIndicator(
+                    `✅ Alle ${totalCards} Karten aus Sammlung ausgewählt (Filter ignoriert)`, 
+                    'success'
+                );
+            } else {
+                // Nur gefilterte Karten auswählen
+                this.filteredCards.forEach(card => {
+                    const cardKey = this.getCardKey(card);
+                    this.selectedCards.add(cardKey);
+                });
+                
+                console.log(`✅ ${filteredCards} gefilterte Karten ausgewählt`);
+                
+                // Feedback
+                this.game.ui.showSaveIndicator(
+                    `✅ ${filteredCards} gefilterte Karten ausgewählt`, 
+                    'success'
+                );
+            }
+        } else {
+            // Keine Filter aktiv - alle Karten auswählen
+            console.log(`🔍 About to select ${totalCards} cards from collection`);
+            
+            let addedKeys = 0;
+            const keySet = new Set();
+            
+            this.game.collection.forEach((card, index) => {
+                const cardKey = this.getCardKey(card);
+                
+                if (keySet.has(cardKey)) {
+                    console.warn(`⚠️ Duplicate key found: ${cardKey} (card ${index}: ${card.name})`);
+                } else {
+                    keySet.add(cardKey);
+                }
+                
+                this.selectedCards.add(cardKey);
+                addedKeys++;
+                
+                if (index < 5) {
+                    console.log(`🔍 Card ${index}: ${card.name} -> Key: ${cardKey}`);
+                }
+            });
+            
+            console.log(`✅ Alle ${totalCards} Karten ausgewählt (keine Filter)`);
+            console.log(`🔍 Added ${addedKeys} keys, unique keys: ${keySet.size}, selectedCards.size: ${this.selectedCards.size}`);
+            
+            // Feedback
+            this.game.ui.showSaveIndicator(
+                `✅ Alle ${totalCards} Karten ausgewählt`, 
+                'success'
+            );
+        }
+        
+        console.log(`🎯 After selection logic - selectedCards.size: ${this.selectedCards.size}`);
+        
+        // Alle sichtbaren Karten als ausgewählt markieren
+        const cardElements = document.querySelectorAll('.sell-mode .monster-card');
+        cardElements.forEach(element => {
+            element.classList.add('selected');
+        });
+        
+        console.log(`🎯 After visual marking - selectedCards.size: ${this.selectedCards.size}`);
+        
+        // Auch Platzhalter als ausgewählt markieren
+        const placeholders = document.querySelectorAll('.card-placeholder');
+        placeholders.forEach(placeholder => {
+            if (placeholder.dataset.monsterData) {
+                try {
+                    const monsterData = JSON.parse(placeholder.dataset.monsterData);
+                    const cardKey = this.getCardKey(monsterData);
+                    if (this.selectedCards.has(cardKey)) {
+                        placeholder.classList.add('selected-placeholder');
+                        placeholder.style.border = '3px solid #ffd700';
+                        placeholder.style.background = 'rgba(255, 215, 0, 0.1)';
+                        placeholder.innerHTML = '✅ Ausgewählt';
+                    }
+                } catch (error) {
+                    console.error('Error parsing placeholder data:', error);
+                }
+            }
+        });
+        
+        console.log(`🎯 After placeholder marking - selectedCards.size: ${this.selectedCards.size}`);
+        
+        this.updateMultiSellBar();
+        
+        // Debug: Finale Auswahl - VERWENDE COLLECTION-SUCHE!
+        const totalSelected = this.selectedCards.size;
+        const totalValue = Array.from(this.selectedCards).reduce((sum, cardKey) => {
+            const card = this.findCardByKeyInCollection(cardKey);
+            return card ? sum + this.getCardValue(card) : sum;
+        }, 0);
+        
+        console.log(`🎯 Finale Auswahl: ${totalSelected} Karten, ${totalValue} Münzen`);
+    }
+
+    clearSelection() {
+        this.selectedCards.clear();
+        
+        // Alle Karten deselektieren
+        const cardElements = document.querySelectorAll('.sell-mode .monster-card.selected');
+        cardElements.forEach(element => {
+            element.classList.remove('selected');
+        });
+        
+        // Platzhalter zurücksetzen
+        const placeholders = document.querySelectorAll('.card-placeholder.selected-placeholder');
+        placeholders.forEach(placeholder => {
+            placeholder.classList.remove('selected-placeholder');
+            placeholder.style.border = '';
+            placeholder.style.background = 'rgba(255, 255, 255, 0.05)';
+            placeholder.innerHTML = '📱 Karte virtualisiert';
+        });
+        
+        this.updateMultiSellBar();
+    }
+
+    updateMultiSellBar() {
+        const selectedCount = document.getElementById('selected-count');
+        const selectedValue = document.getElementById('selected-value');
+        const sellSelectedBtn = document.getElementById('sell-selected-btn');
+        const multiSellBar = document.getElementById('multi-sell-bar');
+        
+        if (!selectedCount || !selectedValue || !sellSelectedBtn) return;
+        
+        const count = this.selectedCards.size;
+        let totalValue = 0;
+        let foundCards = 0;
+        
+        console.log(`🔍 Debug updateMultiSellBar: selectedCards.size = ${count}`);
+        console.log(`🔍 Debug selectedCards contents:`, Array.from(this.selectedCards));
+        
+        // Berechne Gesamtwert der ausgewählten Karten - SUCHE IN GESAMTER SAMMLUNG!
+        this.selectedCards.forEach(cardKey => {
+            const card = this.findCardByKeyInCollection(cardKey);
+            if (card) {
+                totalValue += this.getCardValue(card);
+                foundCards++;
+            } else {
+                console.warn('⚠️ Card not found in collection for key:', cardKey);
+            }
+        });
+        
+        selectedCount.textContent = count;
+        selectedValue.textContent = `${totalValue} Münzen`;
+        
+        // Debug: Zeige Verhältnis von ausgewählten zu verfügbaren Karten
+        const totalFilteredCards = this.filteredCards.length;
+        const totalCollectionCards = this.game.collection.length;
+        
+        if (count > 0) {
+            selectedCount.title = `${count} von ${totalCollectionCards} Karten ausgewählt (${totalFilteredCards} sichtbar)`;
+        }
+        
+        // Button aktivieren/deaktivieren
+        sellSelectedBtn.disabled = count === 0;
+        
+        // Bar anzeigen/verstecken basierend auf Auswahl
+        if (count > 0 && this.sellModeActive) {
+            multiSellBar.classList.remove('hidden');
+        } else if (!this.sellModeActive) {
+            multiSellBar.classList.add('hidden');
+        }
+        
+        // Debug-Info
+        console.log(`🔄 Multi-Sell Bar Update: ${count} Karten ausgewählt, ${foundCards} gefunden, ${totalValue} Münzen`);
+    }
+
+    findCardByKey(cardKey) {
+        return this.filteredCards.find(card => this.getCardKey(card) === cardKey);
+    }
+
+    findCardByKeyInCollection(cardKey) {
+        // Extrahiere Index aus dem Key (Format: card_INDEX_name_rarity)
+        const indexMatch = cardKey.match(/^card_(\d+)_/);
+        if (indexMatch) {
+            const index = parseInt(indexMatch[1]);
+            if (index >= 0 && index < this.game.collection.length) {
+                return this.game.collection[index];
+            }
+        }
+        
+        // Fallback: Suche in der GESAMTEN Sammlung nach Key-Match
+        return this.game.collection.find(card => this.getCardKey(card) === cardKey);
+    }
+
+    showMultiSellConfirmation() {
+        console.log('🔄 showMultiSellConfirmation called, selectedCards.size:', this.selectedCards.size);
+        
+        if (this.selectedCards.size === 0) {
+            console.log('⚠️ No cards selected, aborting');
+            return;
+        }
+        
+        const selectedCardsArray = Array.from(this.selectedCards).map(key => 
+            this.findCardByKeyInCollection(key)).filter(card => card);
+        
+        console.log('🔄 Found cards:', selectedCardsArray.length);
+        
+        const modal = document.getElementById('card-sell-modal');
+        const preview = document.getElementById('sell-card-preview');
+        const priceValue = document.getElementById('sell-price-value');
+        const modalTitle = document.getElementById('sell-modal-title');
+        
+        if (!modal || !preview || !priceValue) {
+            console.log('⚠️ Modal elements not found!');
+            return;
+        }
+        
+        // Modal-Titel anpassen
+        modalTitle.textContent = `💰 ${selectedCardsArray.length} Karten verkaufen`;
+        
+        // Ausgewählte Karten im Modal anzeigen
+        preview.innerHTML = '';
+        
+        if (selectedCardsArray.length <= 6) {
+            // Zeige alle Karten wenn wenige ausgewählt
+            const cardsContainer = document.createElement('div');
+            cardsContainer.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+                max-height: 300px;
+                overflow-y: auto;
+            `;
+            
+            selectedCardsArray.forEach(card => {
+                const cardElement = this.game.ui.createCardElement(card);
+                cardElement.style.cssText = 'transform: scale(0.7); margin: 0;';
+                cardsContainer.appendChild(cardElement);
+            });
+            
+            preview.appendChild(cardsContainer);
+        } else {
+            // Zeige Zusammenfassung bei vielen Karten
+            const summary = document.createElement('div');
+            summary.style.cssText = 'text-align: center; padding: 20px;';
+            
+            const rarityBreakdown = {};
+            selectedCardsArray.forEach(card => {
+                rarityBreakdown[card.rarity] = (rarityBreakdown[card.rarity] || 0) + 1;
+            });
+            
+            summary.innerHTML = `
+                <div style="font-size: 1.2rem; margin-bottom: 15px;">
+                    ${selectedCardsArray.length} Karten ausgewählt
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                    ${Object.entries(rarityBreakdown).map(([rarity, count]) => `
+                        <div class="rarity-summary ${rarity}">
+                            <div>${count}x</div>
+                            <div>${this.getRarityDisplayName(rarity)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            preview.appendChild(summary);
+        }
+        
+        // Gesamtverkaufspreis anzeigen
+        let totalValue = 0;
+        selectedCardsArray.forEach(card => {
+            totalValue += this.getCardValue(card);
+        });
+        
+        priceValue.textContent = `${totalValue} Münzen`;
+        
+        console.log('🔄 Opening modal...');
+        
+        // Modal öffnen - FORCE SICHTBARKEIT!
+        modal.style.display = 'block';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.style.zIndex = '10000';
+        
+        console.log('🔄 Modal should be visible now');
+        console.log('🔄 Modal display:', modal.style.display);
+        console.log('🔄 Modal visibility:', modal.style.visibility);
+    }
+
+    getRarityDisplayName(rarity) {
+        const names = {
+            'common': 'Häufig',
+            'rare': 'Selten',
+            'epic': 'Episch',
+            'legendary': 'Legendär',
+            'ultra-rare': 'Ultra-Selten'
+        };
+        return names[rarity] || rarity;
+    }
+
     confirmSell() {
+        // Multi-Sell oder Single-Sell?
+        if (this.selectedCards.size > 0) {
+            return this.confirmMultiSell();
+        }
+        
         if (!this.currentSellCard) {
             console.log('No card selected for selling');
             return;
@@ -498,6 +924,88 @@ export class CollectionManager {
         
         // Feedback anzeigen
         this.game.ui.showSaveIndicator(`💰 ${soldCard.name} für ${sellPrice} Münzen verkauft!`, 'success');
+        
+        // Modal schließen
+        this.closeSellModal();
+    }
+
+    confirmMultiSell() {
+        if (this.selectedCards.size === 0) return;
+        
+        const selectedCardsArray = Array.from(this.selectedCards).map(key => 
+            this.findCardByKeyInCollection(key)).filter(card => card);
+        
+        console.log(`🛒 Multi-Sell: Attempting to sell ${selectedCardsArray.length} cards`);
+        console.log('Selected cards:', selectedCardsArray.map(c => c.name));
+        
+        let totalValue = 0;
+        let soldCount = 0;
+        const soldCards = [];
+        
+        // Verkaufe alle ausgewählten Karten
+        selectedCardsArray.forEach(cardToSell => {
+            const cardIndex = this.game.collection.findIndex(card => 
+                card.name === cardToSell.name && 
+                card.rarity === cardToSell.rarity &&
+                card.attack === cardToSell.attack &&
+                card.defense === cardToSell.defense &&
+                card.health === cardToSell.health
+            );
+            
+            if (cardIndex !== -1) {
+                const soldCard = this.game.collection.splice(cardIndex, 1)[0];
+                const sellPrice = this.getCardValue(soldCard);
+                totalValue += sellPrice;
+                soldCount++;
+                soldCards.push(soldCard);
+                
+                // Karte auch aus Deck entfernen falls vorhanden
+                const deckIndex = this.game.deck.findIndex(deckCard => 
+                    deckCard.name === soldCard.name && deckCard.rarity === soldCard.rarity
+                );
+                if (deckIndex !== -1) {
+                    this.game.deck.splice(deckIndex, 1);
+                }
+            }
+        });
+        
+        console.log(`✅ Multi-Sell: Successfully sold ${soldCount} cards for ${totalValue} coins`);
+        
+        if (soldCount === 0) {
+            this.game.ui.showSaveIndicator('❌ Keine Karten verkauft!', 'error');
+            return;
+        }
+        
+        // Münzen hinzufügen
+        this.game.coins += totalValue;
+        
+        // Auswahl zurücksetzen
+        this.clearSelection();
+        
+        // UI Updates
+        this.game.ui.updateDisplay();
+        this.displayCollection();
+        if (this.game.deckManager) {
+            this.game.deckManager.updateDeckBuilder();
+        }
+        
+        // Speichern
+        this.game.saveManager.saveGameData();
+        
+        // Detailliertes Feedback anzeigen
+        const rarityBreakdown = {};
+        soldCards.forEach(card => {
+            rarityBreakdown[card.rarity] = (rarityBreakdown[card.rarity] || 0) + 1;
+        });
+        
+        const breakdownText = Object.entries(rarityBreakdown)
+            .map(([rarity, count]) => `${count}x ${this.getRarityDisplayName(rarity)}`)
+            .join(', ');
+        
+        this.game.ui.showSaveIndicator(
+            `💰 ${soldCount} Karten verkauft (${breakdownText}) für ${totalValue} Münzen!`, 
+            'success'
+        );
         
         // Modal schließen
         this.closeSellModal();
