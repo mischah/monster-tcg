@@ -28,6 +28,8 @@ export class Game {
         // Verzögere Event-Listener Setup um sicherzustellen dass DOM bereit ist
         setTimeout(() => {
             this.ui.initializeEventListeners();
+            // Nach dem Setup prüfen welcher Tab aktiv ist und entsprechend initialisieren
+            this.initializeActiveTab();
         }, 100);
         
         this.ui.updateDisplay();
@@ -85,6 +87,26 @@ export class Game {
                 toggleBtn.click();
             }
         };
+    }
+
+    initializeActiveTab() {
+        // Finde heraus, welcher Tab aktuell aktiv ist
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab) {
+            const tabId = activeTab.id;
+            console.log('Initializing active tab:', tabId);
+            
+            // Rufe entsprechende Initialisierung für den aktiven Tab auf
+            if (tabId === 'collection') {
+                this.collectionManager.displayCollection();
+            } else if (tabId === 'battle') {
+                this.battleManager.updateBattleMonsterSelect();
+            } else if (tabId === 'deck') {
+                this.deckManager.updateDeckBuilder();
+            } else if (tabId === 'shop') {
+                this.updateShopDisplay();
+            }
+        }
     }
 
     initializeStarterCards() {
