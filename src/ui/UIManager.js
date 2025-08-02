@@ -72,37 +72,51 @@ export class UIManager {
     }
 
     createCardElement(monster, isSmall = false) {
-        const card = document.createElement('div');
-        card.className = `monster-card ${monster.rarity}`;
-        
-        card.innerHTML = `
-            <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
-            <div class="card-image monster-image ${monster.image}">
-                <div class="monster-symbol">${monster.emoji}</div>
+        // Performance: Template-basierte Erstellung mit DocumentFragment
+        const template = document.createElement('template');
+        template.innerHTML = `
+            <div class="monster-card ${monster.rarity}">
+                <div class="card-rarity rarity-${monster.rarity}">${monster.rarity}</div>
+                <div class="card-image monster-image ${monster.image}">
+                    <div class="monster-symbol">${monster.emoji}</div>
+                </div>
+                <div class="card-name">${monster.name}</div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Angriff</span>
+                        <span class="stat-value">${monster.attack}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Verteidigung</span>
+                        <span class="stat-value">${monster.defense}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Leben</span>
+                        <span class="stat-value">${monster.health}/${monster.maxHealth}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Typ</span>
+                        <span class="stat-value">${monster.rarity}</span>
+                    </div>
+                </div>
+                <div class="card-description">${monster.description}</div>
             </div>
-            <div class="card-name">${monster.name}</div>
-            <div class="card-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Angriff</span>
-                    <span class="stat-value">${monster.attack}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Verteidigung</span>
-                    <span class="stat-value">${monster.defense}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Leben</span>
-                    <span class="stat-value">${monster.health}/${monster.maxHealth}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Typ</span>
-                    <span class="stat-value">${monster.rarity}</span>
-                </div>
-            </div>
-            <div class="card-description">${monster.description}</div>
         `;
         
+        // Performance: Clone template statt innerHTML
+        const card = template.content.firstElementChild.cloneNode(true);
         card.classList.add('card-reveal');
+        
+        // Lazy Loading für Bilder
+        const imageElement = card.querySelector('.card-image');
+        if (imageElement) {
+            imageElement.style.opacity = '0';
+            // Simuliere Bild-Laden
+            setTimeout(() => {
+                imageElement.style.opacity = '1';
+                imageElement.style.transition = 'opacity 0.3s ease';
+            }, Math.random() * 200);
+        }
         
         return card;
     }
