@@ -4,6 +4,9 @@ import { getRandomMonsterByRarity } from '../data/MonsterDatabase.js';
 export class ShopManager {
     constructor(game) {
         this.game = game;
+        this.autoRestockTimers = new Map(); // Timer für automatisches Auffüllen
+        this.autoRestockEnabled = true; // Auto-Restock aktiviert
+        this.restockDelay = 60000; // 1 Minute in Millisekunden
     }
 
     initializeBoosterDisplays() {
@@ -295,6 +298,9 @@ export class ShopManager {
                 // Shop-Statistiken aktualisieren
                 this.updateShopStats();
                 
+                // Auto-Restock prüfen
+                this.checkAndStartAutoRestock(packType);
+                
                 this.showPurchaseIndicator(`${this.getPackTypeName(packType)} gekauft!`, 'success');
             } else {
                 // Bei Fehler Animation entfernen
@@ -459,5 +465,166 @@ export class ShopManager {
             // Zur Sammlung wechseln
             this.game.switchTab('collection');
         });
+    }
+
+    // Auto-Restock System
+    checkAndStartAutoRestock(packType) {
+        if (!this.autoRestockEnabled) return;
+        
+        const display = document.querySelector(`.${packType}-display`);
+        if (!display) return;
+        
+        const availablePacks = display.querySelectorAll(`.${packType}-pack:not(.sold-out)`);
+        
+        // Wenn Display leer ist, starte Timer
+        if (availablePacks.length === 0) {
+            console.log(`🔄 ${packType} Display ist leer - Auto-Restock in 1 Minute`);
+            
+            // Clear existing timer if any
+            if (this.autoRestockTimers.has(packType)) {
+                clearTimeout(this.autoRestockTimers.get(packType));
+            }
+            
+            // Start countdown timer
+            this.startRestockCountdown(packType);
+            
+            // Set restock timer
+            const timer = setTimeout(() => {
+                this.autoRestockDisplay(packType);
+                this.autoRestockTimers.delete(packType);
+            }, this.restockDelay);
+            
+            this.autoRestockTimers.set(packType, timer);
+        }
+    }
+
+    startRestockCountdown(packType) {
+        const display = document.querySelector(`.${packType}-display`);
+        if (!display) return;
+        
+        // Create countdown display
+        const countdown = document.createElement('div');
+        countdown.className = 'restock-countdown';
+        countdown.innerHTML = `
+            <div class="countdown-content">
+                <div class="countdown-icon">🔄</div>
+                <div class="countdown-text">Wird wieder aufgefüllt in:</div>
+                <div class="countdown-timer" id="countdown-${packType}">01:00</div>
+            </div>
+        `;
+        
+        display.innerHTML = '';
+        display.appendChild(countdown);
+        
+        // Start countdown
+        let timeLeft = 60;
+        const countdownInterval = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const timerElement = document.getElementById(`countdown-${packType}`);
+            
+            if (timerElement) {
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+    }
+
+    autoRestockDisplay(packType) {
+        console.log(`✅ Auto-Restock: ${packType} Display wird wieder aufgefüllt`);
+        
+        // Generate new packs
+        this.generateBoosterDisplay(packType, 30);
+        
+        // Update UI stats
+        this.updateShopStats();
+        
+        // Show notification
+        this.showRestockNotification(packType);
+        
+        // Update pack availability
+        this.updatePackAvailability();
+    }
+
+    showRestockNotification(packType) {
+        const packNames = {
+            'basic': 'Basis-Booster',
+            'premium': 'Premium-Booster', 
+            'legendary': 'Legendäre-Booster'
+        };
+        
+        const notification = document.createElement('div');
+        notification.className = 'restock-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-icon">🆕</div>
+                <div class="notification-text">${packNames[packType]} Display wieder aufgefüllt!</div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    updateShopStats() {
+        // Count available packs
+        const basicCount = document.querySelectorAll('.basic-pack:not(.sold-out)').length;
+        const premiumCount = document.querySelectorAll('.premium-pack:not(.sold-out)').length;
+        const legendaryCount = document.querySelectorAll('.legendary-pack:not(.sold-out)').length;
+        
+        // Update display
+        const basicCountElement = document.getElementById('basic-count');
+        const premiumCountElement = document.getElementById('premium-count');
+        const legendaryCountElement = document.getElementById('legendary-count');
+        
+        if (basicCountElement) basicCountElement.textContent = basicCount;
+        if (premiumCountElement) premiumCountElement.textContent = premiumCount;
+        if (legendaryCountElement) legendaryCountElement.textContent = legendaryCount;
+    }
+
+    // Settings für Auto-Restock
+    setAutoRestockEnabled(enabled) {
+        this.autoRestockEnabled = enabled;
+        if (!enabled) {
+            // Clear all timers
+            this.autoRestockTimers.forEach(timer => clearTimeout(timer));
+            this.autoRestockTimers.clear();
+        }
+    }
+
+    setRestockDelay(delayInMinutes) {
+        this.restockDelay = delayInMinutes * 60 * 1000;
+    }
+
+    // Manual restock (existing functionality)
+    restockAllDisplays() {
+        console.log('🔄 Manueller Restock aller Displays');
+        
+        // Clear any auto-restock timers
+        this.autoRestockTimers.forEach(timer => clearTimeout(timer));
+        this.autoRestockTimers.clear();
+        
+        // Restock all displays
+        this.generateBoosterDisplay('basic', 30);
+        this.generateBoosterDisplay('premium', 30);
+        this.generateBoosterDisplay('legendary', 30);
+        
+        this.updateShopStats();
+        this.updatePackAvailability();
+        
+        // Show feedback
+        this.game.ui.showSaveIndicator('🔄 Alle Displays wurden wieder aufgefüllt!', 'success');
     }
 }

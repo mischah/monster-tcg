@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monster TCG - Sammelkartenspiel</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles.css?v=1.4">
     <link rel="stylesheet" href="./assets/images/monster-images.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
@@ -70,9 +70,26 @@
                         <button id="toggle-sell-mode" class="mode-toggle" title="Verkaufsmodus aktivieren">
                             💰 Verkaufen
                         </button>
+                        <button id="select-all-cards" class="mode-toggle hidden" title="Alle gefilterten Karten auswählen (auch die noch nicht geladenen)">
+                            ✅ Alle
+                        </button>
                     </div>
                 </div>
                 <div id="card-grid" class="card-grid"></div>
+                
+                <!-- Floating Action Bar for Multi-Selection -->
+                <div id="multi-sell-bar" class="multi-sell-bar hidden">
+                    <div class="multi-sell-content">
+                        <div class="selected-info">
+                            <span id="selected-count">0</span> Karten ausgewählt
+                            <span id="selected-value">0 Münzen</span>
+                        </div>
+                        <div class="multi-sell-actions">
+                            <button id="clear-selection-btn" class="action-btn clear">❌ Leeren</button>
+                            <button id="sell-selected-btn" class="action-btn sell">💰 Verkaufen</button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Shop -->
@@ -348,7 +365,7 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <div id="modal-sell-details">
-                <h3>💰 Karte verkaufen</h3>
+                <h3 id="sell-modal-title">💰 Karte verkaufen</h3>
                 <div id="sell-card-preview"></div>
                 <div class="sell-info">
                     <div class="sell-price">
@@ -367,6 +384,6 @@
         </div>
     </div>
 
-    <script type="module" src="./main.js"></script>
+    <script type="module" src="./main.js?v=1.3"></script>
 </body>
 </html>

@@ -1704,3 +1704,92 @@ body {
     0% { background: linear-gradient(135deg, rgba(255, 0, 255, 0.2), rgba(0, 255, 255, 0.2)); }
     100% { background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3)); }
 }
+
+/* Auto-Restock Countdown Display */
+.restock-countdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(45, 55, 72, 0.1));
+    border: 2px dashed rgba(74, 144, 226, 0.3);
+    border-radius: 15px;
+    margin: 10px;
+    animation: pulse-border 2s ease-in-out infinite;
+}
+
+.countdown-content {
+    text-align: center;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.countdown-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    animation: rotate 2s linear infinite;
+}
+
+.countdown-text {
+    font-size: 1.1rem;
+    color: #cbd5e0;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.countdown-timer {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #4a90e2;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+    letter-spacing: 2px;
+}
+
+@keyframes pulse-border {
+    0%, 100% {
+        border-color: rgba(74, 144, 226, 0.3);
+        box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.4);
+    }
+    50% {
+        border-color: rgba(74, 144, 226, 0.6);
+        box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mobile responsive countdown */
+@media (max-width: 768px) {
+    .restock-countdown {
+        min-height: 250px;
+        margin: 5px;
+    }
+    
+    .countdown-content {
+        padding: 20px;
+    }
+    
+    .countdown-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .countdown-text {
+        font-size: 1rem;
+    }
+    
+    .countdown-timer {
+        font-size: 2rem;
+    }
+}
