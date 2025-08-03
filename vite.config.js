@@ -13,11 +13,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: './index.html'
+      }
+    }
   },
   resolve: {
     alias: {
       '@': '/src'
     }
+  },
+  esbuild: {
+    target: 'es2020'
   }
 })

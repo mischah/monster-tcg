@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install --save-dev typescript @types/node)",
+      "Bash(find src -name \"*.ts\")",
+      "Bash(find src -name \"*.js\")",
+      "Bash(find src -name \"*.js\" -type f)",
+      "Bash(find src -name \"*.ts\" -type f)",
+      "Bash(npm run build)",
+      "Bash(rm \"/Users/mkuehnel/Documents/Projects/monster-tcg/script.js.backup\")",
+      "Bash(pkill -f \"vite\")"
+    ],
+    "deny": []
+  }
+}
