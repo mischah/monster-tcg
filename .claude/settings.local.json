@@ -8,7 +8,11 @@
       "Bash(find src -name \"*.ts\" -type f)",
       "Bash(npm run build)",
       "Bash(rm \"/Users/mkuehnel/Documents/Projects/monster-tcg/script.js.backup\")",
-      "Bash(pkill -f \"vite\")"
+      "Bash(pkill -f \"vite\")",
+      "Bash(npm install firebase)",
+      "Bash(ls -la)",
+      "Bash(find src -name \"Game.*\" -type f)",
+      "Bash(rm src/Game.js)"
     ],
     "deny": []
   }

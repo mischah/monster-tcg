@@ -5,6 +5,8 @@ import { BattleManager } from './managers/BattleManager.js';
 import { DeckManager } from './managers/DeckManager.js';
 import { CollectionManager } from './managers/CollectionManager.js';
 import { SaveManager } from './managers/SaveManager.js';
+import { FirebaseSaveManager } from './managers/FirebaseSaveManager.js';
+import { AuthManager } from './managers/AuthManager.js';
 import { UIManager } from './ui/UIManager.js';
 
 export class Game {
@@ -20,6 +22,8 @@ export class Game {
     public deckManager: DeckManager;
     public collectionManager: CollectionManager;
     public saveManager: SaveManager;
+    public firebaseSaveManager: FirebaseSaveManager;
+    public authManager: AuthManager;
 
     constructor() {
         // Initialize Managers
@@ -29,9 +33,11 @@ export class Game {
         this.deckManager = new DeckManager(this);
         this.collectionManager = new CollectionManager(this);
         this.saveManager = new SaveManager(this);
+        this.firebaseSaveManager = new FirebaseSaveManager(this);
+        this.authManager = new AuthManager(this);
         
-        // Load game data or initialize starter cards
-        this.saveManager.loadGameData();
+        // Load game data - will be handled by Firebase integration
+        this.initializeGameData();
         
         // Verzögere Event-Listener Setup um sicherzustellen dass DOM bereit ist
         setTimeout(() => {
@@ -56,8 +62,8 @@ export class Game {
         // Initialize drag & drop for deck builder
         this.deckManager.initializeDragAndDrop();
         
-        // Start auto-save
-        this.saveManager.startAutoSave();
+        // Start auto-save with Firebase support
+        this.firebaseSaveManager.startAutoSave();
         
         // Globale Test-Funktion für Browser-Konsole
         (window as any).testSell = () => {
@@ -95,6 +101,18 @@ export class Game {
                 toggleBtn.click();
             }
         };
+    }
+
+    private async initializeGameData(): Promise<void> {
+        // Wait a bit for auth state to be determined
+        setTimeout(async () => {
+            const currentUser = this.authManager.getCurrentUser();
+            await this.firebaseSaveManager.loadGameData(currentUser);
+            
+            // Update UI after loading
+            this.ui.updateDisplay();
+            this.collectionManager.updateCollectionValue();
+        }, 500);
     }
 
     private initializeActiveTab(): void {

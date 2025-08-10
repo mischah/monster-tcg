@@ -3,6 +3,7 @@
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 
 export type MonsterData = {
+    id?: string;
     name: string;
     emoji: string;
     attack: number;
@@ -91,4 +92,49 @@ export type GameManagerType = {
     saveManager: any; // SaveManager
     switchTab: (tab: string) => void;
     initializeStarterCards: () => void;
+};
+
+// Firebase & Authentication Types
+export type UserProfile = {
+    uid: string;
+    email: string;
+    nickname: string;
+    friendCode: string;
+    createdAt: string;
+    lastActive: string;
+};
+
+export type FirebaseGameData = {
+    coins: number;
+    collection: MonsterData[];
+    deck: MonsterData[];
+    lastSaved: string;
+};
+
+export type AuthState = {
+    user: UserProfile | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+    error: string | null;
+};
+
+export type LoginState = {
+    isLoading: boolean;
+    isEmailSent: boolean;
+    error: string | null;
+};
+
+export type FirestoreUserDocument = {
+    email: string;
+    nickname: string;
+    friendCode: string;
+    gameData: FirebaseGameData;
+    createdAt: string;
+    lastActive: string;
+};
+
+export type EmailLinkAuthResult = {
+    success: boolean;
+    error?: string;
+    needsSignIn?: boolean;
 };

@@ -20,5 +20,8 @@
     "cards"
   ],
   "author": "Vince",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "firebase": "^12.0.0"
+  }
 }

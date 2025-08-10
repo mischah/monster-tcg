@@ -46,6 +46,70 @@ body {
     align-items: center;
 }
 
+/* Authentication Section */
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.auth-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.auth-status.loading {
+    opacity: 0.7;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-email {
+    font-size: 0.9rem;
+    color: #4a90e2;
+    font-weight: 500;
+}
+
+.profile-btn, .logout-btn, .login-btn {
+    background: linear-gradient(135deg, #4a90e2, #357ABD);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 35px;
+}
+
+.profile-btn:hover, .logout-btn:hover, .login-btn:hover {
+    background: linear-gradient(135deg, #357ABD, #2868A3);
+    transform: translateY(-1px);
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+}
+
+.login-btn {
+    padding: 8px 16px;
+    font-size: 1rem;
+}
+
 .stat {
     text-align: center;
 }
