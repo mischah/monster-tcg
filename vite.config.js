@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: '/monster-tcg/',
   root: '.',
   server: {
     port: 3000,
