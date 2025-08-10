@@ -295,16 +295,71 @@ export class UIManager {
     }
 
     private setupEventListeners(): void {
-        // Tab-Navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', (e: Event) => {
+        console.log('🔧 DEBUG: setupEventListeners called');
+        console.log('🔧 DEBUG: document.readyState:', document.readyState);
+        
+        // Tab-Navigation - Use event delegation to handle dynamically created buttons
+        const gameNav = document.querySelector('.game-nav');
+        console.log('🔧 DEBUG: Setting up tab navigation event listener, gameNav found:', !!gameNav);
+        console.log('🔧 DEBUG: gameNav element:', gameNav);
+        
+        if (gameNav) {
+            gameNav.addEventListener('click', (e: Event) => {
                 const target = e.target as HTMLElement;
-                const tab = target.dataset.tab;
-                if (tab) {
-                    this.game.switchTab(tab);
+                console.log('🔧 DEBUG: Tab click detected, target:', target);
+                console.log('🔧 DEBUG: Target tagName:', target.tagName);
+                console.log('🔧 DEBUG: Target classes:', target.classList.toString());
+                console.log('🔧 DEBUG: Target dataset:', target.dataset);
+                console.log('🔧 DEBUG: Target innerHTML:', target.innerHTML);
+                
+                // Special check for friends button
+                if (target.getAttribute('data-tab') === 'friends') {
+                    console.log('🚨 SPECIAL: Friends button detected in general handler!');
+                }
+                
+                // Check if clicked element is a nav button
+                if (target.classList.contains('nav-btn')) {
+                    const tab = target.dataset.tab;
+                    console.log('🔧 DEBUG: Nav button clicked, tab:', tab);
+                    if (tab) {
+                        console.log('🔧 DEBUG: Calling switchTab with:', tab);
+                        this.game.switchTab(tab);
+                    } else {
+                        console.log('🔧 DEBUG: No tab data found!');
+                    }
+                } else {
+                    console.log('🔧 DEBUG: Clicked element is not a nav-btn');
                 }
             });
-        });
+        } else {
+            console.log('🚨 ERROR: gameNav not found! Trying alternative approach...');
+            
+            // Fallback: Try to find gameNav later
+            setTimeout(() => {
+                console.log('🔧 DEBUG: Retrying gameNav search after timeout...');
+                const retryGameNav = document.querySelector('.game-nav');
+                console.log('🔧 DEBUG: Retry gameNav found:', !!retryGameNav);
+                
+                if (retryGameNav) {
+                    console.log('🔧 DEBUG: Setting up delayed event listener');
+                    retryGameNav.addEventListener('click', (e: Event) => {
+                        const target = e.target as HTMLElement;
+                        console.log('🔧 DEBUG: [DELAYED] Tab click detected, target:', target);
+                        console.log('🔧 DEBUG: [DELAYED] Target classes:', target.classList.toString());
+                        console.log('🔧 DEBUG: [DELAYED] Target dataset:', target.dataset);
+                        
+                        if (target.classList.contains('nav-btn')) {
+                            const tab = target.dataset.tab;
+                            console.log('🔧 DEBUG: [DELAYED] Nav button clicked, tab:', tab);
+                            if (tab) {
+                                console.log('🔧 DEBUG: [DELAYED] Calling switchTab with:', tab);
+                                this.game.switchTab(tab);
+                            }
+                        }
+                    });
+                }
+            }, 1000);
+        }
 
         // Filter und Suche
         const rarityFilter = document.getElementById('rarity-filter') as HTMLSelectElement;

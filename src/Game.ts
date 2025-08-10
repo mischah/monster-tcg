@@ -8,6 +8,7 @@ import { SaveManager } from './managers/SaveManager.js';
 import { FirebaseSaveManager } from './managers/FirebaseSaveManager.js';
 import { AuthManager } from './managers/AuthManager.js';
 import { UIManager } from './ui/UIManager.js';
+import { FriendsTab } from './ui/FriendsTab.js';
 
 export class Game {
     // Game State
@@ -24,6 +25,7 @@ export class Game {
     public saveManager: SaveManager;
     public firebaseSaveManager: FirebaseSaveManager;
     public authManager: AuthManager;
+    public friendsTab: FriendsTab;
 
     constructor() {
         // Initialize Managers
@@ -35,6 +37,7 @@ export class Game {
         this.saveManager = new SaveManager(this);
         this.firebaseSaveManager = new FirebaseSaveManager(this);
         this.authManager = new AuthManager(this);
+        this.friendsTab = new FriendsTab();
         
         // Load game data - will be handled by Firebase integration
         this.initializeGameData();
@@ -148,12 +151,15 @@ export class Game {
     }
 
     public switchTab(tab: string): void {
+        console.log('🔧 DEBUG: switchTab called with:', tab);
+        
         // Tab-Buttons aktualisieren
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         
         const tabButton = document.querySelector(`[data-tab="${tab}"]`);
+        console.log('🔧 DEBUG: Found tab button:', !!tabButton);
         if (tabButton) {
             tabButton.classList.add('active');
         }
@@ -164,6 +170,7 @@ export class Game {
         });
         
         const tabContent = document.getElementById(tab);
+        console.log('🔧 DEBUG: Found tab content element:', !!tabContent);
         if (tabContent) {
             tabContent.classList.add('active');
         }
@@ -177,6 +184,9 @@ export class Game {
             this.deckManager.updateDeckBuilder();
         } else if (tab === 'shop') {
             this.updateShopDisplay();
+        } else if (tab === 'friends') {
+            console.log('🔧 DEBUG: Calling initializeFriendsTab()');
+            this.initializeFriendsTab();
         }
     }
 
@@ -192,5 +202,12 @@ export class Game {
         
         // Update Shop-Statistiken
         this.shopManager.updateShopStats();
+    }
+
+    private initializeFriendsTab(): void {
+        console.log('🔧 DEBUG: initializeFriendsTab called');
+        console.log('🔧 DEBUG: friendsTab instance:', this.friendsTab);
+        this.friendsTab.initialize();
+        console.log('🔧 DEBUG: friendsTab.initialize() completed');
     }
 }

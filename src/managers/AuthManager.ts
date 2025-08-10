@@ -1,6 +1,7 @@
 import { AuthService } from '../services/AuthService.js';
 import { LoginModal } from '../ui/LoginModal.js';
 import { UserProfileModal } from '../ui/UserProfileModal.js';
+import { notificationService } from '../services/NotificationService.js';
 import type { AuthState, UserProfile, GameManagerType } from '../types.js';
 
 export class AuthManager {
@@ -64,6 +65,9 @@ export class AuthManager {
         // Setup real-time sync
         this.setupRealTimeSync(user);
         
+        // Start cross-browser notification listener
+        notificationService.startTempNotificationListener(user.uid);
+        
         // Show welcome message
         this.showWelcomeMessage(user);
         
@@ -78,6 +82,9 @@ export class AuthManager {
         
         // Stop real-time sync
         this.stopRealTimeSync();
+        
+        // Stop cross-browser notification listener
+        notificationService.stopTempNotificationListener();
         
         // Clear any user-specific data
         this.clearUserGameData();
@@ -211,20 +218,48 @@ export class AuthManager {
     }
 
     private updateNavigationAuth(authState: AuthState): void {
+        console.log('🔧 DEBUG: updateNavigationAuth called, isAuthenticated:', authState.isAuthenticated);
+        
         // Add profile tab if authenticated
         const gameNav = document.querySelector('.game-nav');
-        if (!gameNav) return;
+        if (!gameNav) {
+            console.log('🔧 DEBUG ERROR: gameNav not found!');
+            return;
+        }
 
-        let profileBtn = gameNav.querySelector('[data-tab="profile"]');
+        let friendsBtn = gameNav.querySelector('[data-tab="friends"]');
+        console.log('🔧 DEBUG: Existing friends button:', !!friendsBtn);
         
-        if (authState.isAuthenticated && !profileBtn) {
-            profileBtn = document.createElement('button');
-            profileBtn.className = 'nav-btn';
-            profileBtn.setAttribute('data-tab', 'profile');
-            profileBtn.innerHTML = '👤 Profil';
-            gameNav.appendChild(profileBtn);
-        } else if (!authState.isAuthenticated && profileBtn) {
-            profileBtn.remove();
+        if (authState.isAuthenticated && !friendsBtn) {
+            console.log('🔧 DEBUG: Creating friends button');
+            friendsBtn = document.createElement('button');
+            friendsBtn.className = 'nav-btn';
+            friendsBtn.setAttribute('data-tab', 'friends');
+            friendsBtn.innerHTML = '👥 Freunde <span id="friends-badge" class="nav-badge hidden">0</span>';
+            gameNav.appendChild(friendsBtn);
+            console.log('🔧 DEBUG: Friends button created and added to DOM');
+            
+            // DIRECT TEST: Add a specific click listener just for Friends button
+            friendsBtn.addEventListener('click', (e) => {
+                console.log('🚨 DIRECT TEST: Friends button clicked!', e);
+                
+                // WORKAROUND: Since event bubbling is broken, call switchTab directly
+                console.log('🚨 DIRECT WORKAROUND: Calling switchTab directly!');
+                if (this.game && this.game.switchTab) {
+                    this.game.switchTab('friends');
+                } else {
+                    console.log('🚨 ERROR: Game instance not available in AuthManager!');
+                }
+            });
+            
+            // Initialize badge functionality
+            this.initializeFriendsBadge(authState.user?.uid);
+            
+        } else if (!authState.isAuthenticated && friendsBtn) {
+            console.log('🔧 DEBUG: Removing friends button');
+            friendsBtn.remove();
+            // Clean up badge subscription
+            this.cleanupFriendsBadge();
         }
     }
 
@@ -321,12 +356,58 @@ export class AuthManager {
         }
     }
 
+    private friendsBadgeUnsubscribe: (() => void) | null = null;
+
+    private async initializeFriendsBadge(uid?: string): Promise<void> {
+        if (!uid) return;
+        
+        try {
+            // Import FriendshipService dynamically to avoid circular dependencies
+            const { FriendshipService } = await import('../services/FriendshipService.js');
+            const friendshipService = new FriendshipService();
+            
+            // Subscribe to friend requests and update badge
+            this.friendsBadgeUnsubscribe = friendshipService.subscribeFriendRequests(uid, (requests) => {
+                const incomingRequests = requests.filter(r => r.to.uid === uid);
+                this.updateFriendsBadge(incomingRequests.length);
+            });
+            
+            console.log('✅ Friends badge initialized');
+        } catch (error) {
+            console.error('❌ Failed to initialize friends badge:', error);
+        }
+    }
+
+    private updateFriendsBadge(count: number): void {
+        const badge = document.getElementById('friends-badge');
+        if (!badge) return;
+        
+        if (count > 0) {
+            badge.textContent = count.toString();
+            badge.classList.remove('hidden');
+            console.log('🔔 Friends badge updated:', count);
+        } else {
+            badge.classList.add('hidden');
+            console.log('🔔 Friends badge hidden (no requests)');
+        }
+    }
+
+    private cleanupFriendsBadge(): void {
+        if (this.friendsBadgeUnsubscribe) {
+            this.friendsBadgeUnsubscribe();
+            this.friendsBadgeUnsubscribe = null;
+            console.log('✅ Friends badge subscription cleaned up');
+        }
+    }
+
     public destroy(): void {
         if (this.authStateUnsubscribe) {
             this.authStateUnsubscribe();
             this.authStateUnsubscribe = null;
         }
         
+        this.cleanupFriendsBadge();
         this.stopRealTimeSync();
+        notificationService.stopTempNotificationListener();
     }
 }

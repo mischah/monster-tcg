@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+    
+    function isInvolved(friendship) {
+      return request.auth.uid == friendship.user1 || request.auth.uid == friendship.user2;
+    }
+
+    // Users collection - user profiles
+    match /users/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      
+      // Users can read other profiles for friend search
+      allow read: if isAuthenticated();
+    }
+
+    // FriendCodes collection - for friend code lookups
+    match /friendCodes/{friendCode} {
+      // Anyone authenticated can read friend codes for search
+      allow read: if isAuthenticated();
+      
+      // Only the owner can write their friend code mapping
+      allow write: if isAuthenticated() && isOwner(resource.data.uid);
+    }
+
+    // Friendships collection - main friendship data
+    match /friendships/{friendshipId} {
+      // Only involved users can read friendships
+      allow read: if isAuthenticated() && isInvolved(resource.data);
+      
+      // Users can create friendships where they are involved
+      allow create: if isAuthenticated() && 
+        (request.auth.uid == request.resource.data.user1 || 
+         request.auth.uid == request.resource.data.user2) &&
+        // Ensure proper data structure
+        request.resource.data.keys().hasAll(['user1', 'user2', 'status', 'initiatedBy', 'createdAt', 'lastActivity', 'metadata']) &&
+        request.resource.data.status in ['pending', 'accepted', 'blocked'] &&
+        request.resource.data.user1 is string &&
+        request.resource.data.user2 is string &&
+        request.resource.data.user1 != request.resource.data.user2;
+      
+      // Users can update friendships where they are involved
+      allow update: if isAuthenticated() && 
+        isInvolved(resource.data) &&
+        // Can only change status, acceptedAt, lastActivity, and metadata
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'acceptedAt', 'lastActivity', 'metadata']) &&
+        // Status transitions must be valid
+        (
+          // Accept pending request
+          (resource.data.status == 'pending' && request.resource.data.status == 'accepted') ||
+          // Block any friendship
+          (request.resource.data.status == 'blocked') ||
+          // Update metadata without changing status
+          (resource.data.status == request.resource.data.status)
+        );
+      
+      // Users can delete friendships where they are involved
+      allow delete: if isAuthenticated() && isInvolved(resource.data);
+    }
+
+    // Chat messages (future feature preparation)
+    match /chats/{friendshipId}/messages/{messageId} {
+      // Only friends can read and write chat messages
+      allow read, write: if isAuthenticated() && 
+        exists(/databases/$(database)/documents/friendships/$(friendshipId)) &&
+        isInvolved(get(/databases/$(database)/documents/friendships/$(friendshipId)).data) &&
+        get(/databases/$(database)/documents/friendships/$(friendshipId)).data.status == 'accepted' &&
+        get(/databases/$(database)/documents/friendships/$(friendshipId)).data.metadata.canChat == true;
+    }
+
+    // Trade offers (future feature preparation)
+    match /trades/{tradeId} {
+      // Only involved users can access trade data
+      allow read, write: if isAuthenticated() && 
+        (request.auth.uid == resource.data.fromUser || request.auth.uid == resource.data.toUser) &&
+        // Ensure users are friends
+        exists(/databases/$(database)/documents/friendships/$(resource.data.friendshipId)) &&
+        get(/databases/$(database)/documents/friendships/$(resource.data.friendshipId)).data.status == 'accepted' &&
+        get(/databases/$(database)/documents/friendships/$(resource.data.friendshipId)).data.metadata.canTrade == true;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

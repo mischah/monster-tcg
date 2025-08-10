@@ -12,7 +12,9 @@
       "Bash(npm install firebase)",
       "Bash(ls -la)",
       "Bash(find src -name \"Game.*\" -type f)",
-      "Bash(rm src/Game.js)"
+      "Bash(rm src/Game.js)",
+      "Bash(npm run lint)",
+      "Bash(mkdir -p /Users/mkuehnel/Documents/Projects/monster-tcg/src/audio)"
     ],
     "deny": []
   }
