@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../config/firebase.js';
 import { DatabaseService } from './DatabaseService.js';
+import { presenceService } from './PresenceService.js';
 import type { EmailLinkAuthResult, UserProfile, AuthState } from '../types.js';
 
 export class AuthService {
@@ -55,6 +56,9 @@ export class AuthService {
                         isLoading: false,
                         error: null
                     };
+
+                    // Set user as online in presence system
+                    await presenceService.setUserOnline(userProfile.uid);
                 } catch (error) {
                     console.error('Error loading user profile:', error);
                     
@@ -68,6 +72,12 @@ export class AuthService {
                     };
                 }
             } else {
+                // User logged out - set offline and cleanup presence
+                if (this.authState.user) {
+                    await presenceService.setUserOffline(this.authState.user.uid);
+                    presenceService.cleanup();
+                }
+
                 this.authState = {
                     user: null,
                     isAuthenticated: false,
@@ -164,6 +174,12 @@ export class AuthService {
 
     public async signOut(): Promise<void> {
         try {
+            // Set user offline before signing out
+            if (this.authState.user) {
+                await presenceService.setUserOffline(this.authState.user.uid);
+                presenceService.cleanup();
+            }
+            
             await firebaseSignOut(auth);
         } catch (error) {
             console.error('Error signing out:', error);

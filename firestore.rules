@@ -23,6 +23,15 @@ service cloud.firestore {
       allow read: if isAuthenticated();
     }
 
+    // Presence collection - online status
+    match /presence/{userId} {
+      // Users can manage their own presence
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      
+      // Users can read presence of others (for friends list)
+      allow read: if isAuthenticated();
+    }
+
     // FriendCodes collection - for friend code lookups
     match /friendCodes/{friendCode} {
       // Anyone authenticated can read friend codes for search

@@ -16,6 +16,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase.js';
 import { DatabaseService } from './DatabaseService.js';
+import { presenceService } from './PresenceService.js';
 import { notificationService } from './NotificationService.js';
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'blocked';
@@ -422,20 +423,56 @@ export class FriendshipService {
             const querySnapshot = await getDocs(q);
             const friends: Friend[] = [];
 
+            // Collect all friend UIDs for batch presence lookup
+            const friendUids: string[] = [];
+            const friendshipData: Array<{ docSnap: any; friendUid: string }> = [];
+
             for (const docSnap of querySnapshot.docs) {
                 const data = docSnap.data();
                 const friendUid = data.user1 === uid ? data.user2 : data.user1;
                 
-                // TODO: Get friend user data from users collection and online status
-                // For now, create a placeholder
-                const friend: Friend = {
+                friendUids.push(friendUid);
+                friendshipData.push({ docSnap, friendUid });
+            }
+
+            // Get presence data for all friends at once
+            const presenceMap = await presenceService.getMultipleUserPresence(friendUids);
+
+            // Process each friendship with presence data
+            for (const { docSnap, friendUid } of friendshipData) {
+                const data = docSnap.data();
+                const presence = presenceMap.get(friendUid);
+
+                // Get friend user data from users collection
+                let friendData = {
                     uid: friendUid,
                     nickname: 'Loading...',
                     email: '',
-                    friendCode: '',
+                    friendCode: ''
+                };
+                
+                try {
+                    const friendProfile = await this.databaseService.getUserProfile(friendUid);
+                    if (friendProfile) {
+                        friendData = {
+                            uid: friendUid,
+                            nickname: friendProfile.nickname || 'Unknown User',
+                            email: friendProfile.email || '',
+                            friendCode: friendProfile.friendCode || ''
+                        };
+                    }
+                } catch (error) {
+                    console.warn('Failed to load friend profile:', friendUid, error);
+                }
+
+                const friend: Friend = {
+                    uid: friendUid,
+                    nickname: friendData.nickname,
+                    email: friendData.email,
+                    friendCode: friendData.friendCode,
                     friendshipId: docSnap.id,
-                    isOnline: false,
-                    lastActive: data.lastActivity || data.createdAt,
+                    isOnline: presence?.isOnline || false,
+                    lastActive: presence?.lastSeen?.toDate().toISOString() || data.lastActivity || data.createdAt,
                     canTrade: data.metadata?.canTrade ?? true,
                     canChat: data.metadata?.canChat ?? true
                 };
@@ -580,10 +617,25 @@ export class FriendshipService {
         const unsubscribe = onSnapshot(q, async (querySnapshot) => {
             const friends: Friend[] = [];
             
-            // Process all friends with user data loading
-            const friendPromises = querySnapshot.docs.map(async (docSnap) => {
+            // Collect all friend UIDs for batch presence lookup
+            const friendUids: string[] = [];
+            const friendshipData: Array<{ docSnap: any; friendUid: string }> = [];
+
+            for (const docSnap of querySnapshot.docs) {
                 const data = docSnap.data();
                 const friendUid = data.user1 === uid ? data.user2 : data.user1;
+                
+                friendUids.push(friendUid);
+                friendshipData.push({ docSnap, friendUid });
+            }
+
+            // Get presence data for all friends at once
+            const presenceMap = await presenceService.getMultipleUserPresence(friendUids);
+            
+            // Process all friends with user data and presence loading
+            const friendPromises = friendshipData.map(async ({ docSnap, friendUid }) => {
+                const data = docSnap.data();
+                const presence = presenceMap.get(friendUid);
                 
                 console.log('🔧 DEBUG: [Friends Real-time] Loading user data for friendUid:', friendUid);
                 
@@ -613,8 +665,8 @@ export class FriendshipService {
                     email: friendData.email,
                     friendCode: friendData.friendCode,
                     friendshipId: docSnap.id,
-                    isOnline: false,
-                    lastActive: data.lastActivity || data.createdAt,
+                    isOnline: presence?.isOnline || false,
+                    lastActive: presence?.lastSeen?.toDate().toISOString() || data.lastActivity || data.createdAt,
                     canTrade: data.metadata?.canTrade ?? true,
                     canChat: data.metadata?.canChat ?? true
                 };

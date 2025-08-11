@@ -1,6 +1,7 @@
 import { AuthService } from '../services/AuthService.js';
 import { DatabaseService } from '../services/DatabaseService.js';
 import { FriendshipService } from '../services/FriendshipService.js';
+import { presenceService } from '../services/PresenceService.js';
 import { notificationService } from '../services/NotificationService.js';
 import type { UserProfile } from '../types.js';
 
