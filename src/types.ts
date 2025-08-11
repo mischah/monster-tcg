@@ -102,6 +102,7 @@ export type UserProfile = {
     friendCode: string;
     createdAt: string;
     lastActive: string;
+    tradingEnabled?: boolean; // Global trading master switch
 };
 
 export type FirebaseGameData = {
@@ -131,6 +132,7 @@ export type FirestoreUserDocument = {
     gameData: FirebaseGameData;
     createdAt: string;
     lastActive: string;
+    tradingEnabled?: boolean; // Global trading master switch
 };
 
 export type EmailLinkAuthResult = {

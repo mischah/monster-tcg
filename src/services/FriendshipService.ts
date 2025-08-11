@@ -31,7 +31,8 @@ export type Friendship = {
     acceptedAt: string | null;
     lastActivity: string;
     metadata: {
-        canTrade: boolean;
+        user1CanTrade: boolean;  // User 1's consent to trade with User 2
+        user2CanTrade: boolean;  // User 2's consent to trade with User 1  
         canChat: boolean;
     };
 };
@@ -62,7 +63,8 @@ export type Friend = {
     friendshipId: string;
     isOnline: boolean;
     lastActive: string;
-    canTrade: boolean;
+    iAllowTrading: boolean;    // Current user allows trading with this friend
+    friendAllowsTrading: boolean;  // This friend allows trading with current user
     canChat: boolean;
 };
 
@@ -171,7 +173,8 @@ export class FriendshipService {
                 acceptedAt: null,
                 lastActivity: new Date().toISOString(),
                 metadata: {
-                    canTrade: true,
+                    user1CanTrade: true,  // Default: both users allow trading
+                    user2CanTrade: true,  // Default: both users allow trading
                     canChat: true
                 }
             };
@@ -465,6 +468,15 @@ export class FriendshipService {
                     console.warn('Failed to load friend profile:', friendUid, error);
                 }
 
+                // Determine which permissions apply to current user vs friend
+                const currentUserIsUser1 = data.user1 === uid;
+                const iAllowTrading = currentUserIsUser1 
+                    ? (data.metadata?.user1CanTrade ?? true)
+                    : (data.metadata?.user2CanTrade ?? true);
+                const friendAllowsTrading = currentUserIsUser1 
+                    ? (data.metadata?.user2CanTrade ?? true)
+                    : (data.metadata?.user1CanTrade ?? true);
+
                 const friend: Friend = {
                     uid: friendUid,
                     nickname: friendData.nickname,
@@ -473,7 +485,8 @@ export class FriendshipService {
                     friendshipId: docSnap.id,
                     isOnline: presence?.isOnline || false,
                     lastActive: presence?.lastSeen?.toDate().toISOString() || data.lastActivity || data.createdAt,
-                    canTrade: data.metadata?.canTrade ?? true,
+                    iAllowTrading: iAllowTrading,
+                    friendAllowsTrading: friendAllowsTrading,
                     canChat: data.metadata?.canChat ?? true
                 };
 
@@ -659,6 +672,15 @@ export class FriendshipService {
                     console.error('❌ Error [Friends Real-time] loading friend profile:', error);
                 }
 
+                // Determine which permissions apply to current user vs friend
+                const currentUserIsUser1 = data.user1 === uid;
+                const iAllowTrading = currentUserIsUser1 
+                    ? (data.metadata?.user1CanTrade ?? true)
+                    : (data.metadata?.user2CanTrade ?? true);
+                const friendAllowsTrading = currentUserIsUser1 
+                    ? (data.metadata?.user2CanTrade ?? true)
+                    : (data.metadata?.user1CanTrade ?? true);
+
                 const friend: Friend = {
                     uid: friendUid,
                     nickname: friendData.nickname,
@@ -667,7 +689,8 @@ export class FriendshipService {
                     friendshipId: docSnap.id,
                     isOnline: presence?.isOnline || false,
                     lastActive: presence?.lastSeen?.toDate().toISOString() || data.lastActivity || data.createdAt,
-                    canTrade: data.metadata?.canTrade ?? true,
+                    iAllowTrading: iAllowTrading,
+                    friendAllowsTrading: friendAllowsTrading,
                     canChat: data.metadata?.canChat ?? true
                 };
 
@@ -709,20 +732,44 @@ export class FriendshipService {
     }
 
     /**
-     * Update friendship metadata
+     * Update friendship metadata with bidirectional permissions
      */
     public async updateFriendshipMetadata(
         friendshipId: string, 
+        currentUserUid: string,
         metadata: Partial<{ canTrade: boolean; canChat: boolean }>
     ): Promise<{ success: boolean; error?: string }> {
         try {
             const friendshipRef = doc(db, 'friendships', friendshipId);
             
-            await updateDoc(friendshipRef, {
-                [`metadata.canTrade`]: metadata.canTrade,
-                [`metadata.canChat`]: metadata.canChat,
+            // Get the friendship to determine which user is making the update
+            const friendshipDoc = await getDoc(friendshipRef);
+            if (!friendshipDoc.exists()) {
+                return { success: false, error: 'Freundschaft nicht gefunden' };
+            }
+            
+            const friendshipData = friendshipDoc.data();
+            const isUser1 = friendshipData.user1 === currentUserUid;
+            
+            // Build update object with only provided fields
+            const updates: any = {
                 lastActivity: new Date().toISOString()
-            });
+            };
+            
+            // Update the appropriate user's trading permission
+            if (metadata.canTrade !== undefined) {
+                if (isUser1) {
+                    updates[`metadata.user1CanTrade`] = metadata.canTrade;
+                } else {
+                    updates[`metadata.user2CanTrade`] = metadata.canTrade;
+                }
+            }
+            
+            if (metadata.canChat !== undefined) {
+                updates[`metadata.canChat`] = metadata.canChat;
+            }
+            
+            await updateDoc(friendshipRef, updates);
 
             return { success: true };
 
@@ -771,6 +818,65 @@ export class FriendshipService {
     public async areFriends(uid1: string, uid2: string): Promise<boolean> {
         const friendship = await this.getFriendship(uid1, uid2);
         return friendship?.status === 'accepted';
+    }
+
+    /**
+     * Check if two users can trade with each other
+     * Requires both users to have global trading enabled AND both to allow trading with each other
+     */
+    public async canUsersTradeAB(
+        userAUid: string, 
+        userBUid: string,
+        userAProfile?: { tradingEnabled?: boolean },
+        userBProfile?: { tradingEnabled?: boolean }
+    ): Promise<{ canTrade: boolean; reason?: string }> {
+        try {
+            // Load user profiles if not provided
+            if (!userAProfile) {
+                const profile = await this.databaseService.getUserProfile(userAUid);
+                userAProfile = { tradingEnabled: profile?.tradingEnabled };
+            }
+            if (!userBProfile) {
+                const profile = await this.databaseService.getUserProfile(userBUid);
+                userBProfile = { tradingEnabled: profile?.tradingEnabled };
+            }
+
+            // Check global trading settings
+            if (userAProfile.tradingEnabled === false) {
+                return { canTrade: false, reason: 'User A has trading disabled globally' };
+            }
+            if (userBProfile.tradingEnabled === false) {
+                return { canTrade: false, reason: 'User B has trading disabled globally' };
+            }
+
+            // Check friendship and individual permissions
+            const friendship = await this.getFriendship(userAUid, userBUid);
+            if (!friendship || friendship.status !== 'accepted') {
+                return { canTrade: false, reason: 'Users are not friends' };
+            }
+
+            // Determine which user is user1 vs user2 in the friendship
+            const userAIsUser1 = friendship.user1 === userAUid;
+            const userAAllowsTrading = userAIsUser1 
+                ? (friendship.metadata?.user1CanTrade ?? true)
+                : (friendship.metadata?.user2CanTrade ?? true);
+            const userBAllowsTrading = userAIsUser1 
+                ? (friendship.metadata?.user2CanTrade ?? true)
+                : (friendship.metadata?.user1CanTrade ?? true);
+
+            if (!userAAllowsTrading) {
+                return { canTrade: false, reason: 'User A does not allow trading with User B' };
+            }
+            if (!userBAllowsTrading) {
+                return { canTrade: false, reason: 'User B does not allow trading with User A' };
+            }
+
+            return { canTrade: true };
+
+        } catch (error) {
+            console.error('Error checking if users can trade:', error);
+            return { canTrade: false, reason: 'Error checking trading permissions' };
+        }
     }
 
     /**

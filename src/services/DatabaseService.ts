@@ -270,6 +270,24 @@ export class DatabaseService {
         }
     }
 
+    // Trading Settings Management
+    public async updateTradingEnabled(uid: string, tradingEnabled: boolean): Promise<void> {
+        try {
+            if (!uid) {
+                throw new Error('UID is required');
+            }
+
+            // Update user document
+            await this.updateUserProfile(uid, { 
+                tradingEnabled: tradingEnabled 
+            } as Partial<FirestoreUserDocument>);
+
+            console.log('✅ Trading settings updated successfully');
+        } catch (error) {
+            console.error('❌ Failed to update trading settings:', error);
+            throw error;
+        }
+    }
 
     // Collection and Deck Utilities
     public async addMonsterToCollection(uid: string, monster: MonsterData): Promise<void> {

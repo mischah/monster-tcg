@@ -121,6 +121,26 @@ export class UserProfileModal {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Trading Settings Section -->
+                    <div class="profile-section">
+                        <div class="section-header">
+                            <h3>🔄 Handel-Einstellungen</h3>
+                            <span class="section-description">Kontrolle über deine Trading-Aktivitäten</span>
+                        </div>
+                        <div class="profile-field">
+                            <div class="toggle-setting">
+                                <div class="toggle-info">
+                                    <span class="toggle-label">Handel aktiviert</span>
+                                    <span class="toggle-description">Erlaube anderen Spielern, dir Tauschangebote zu senden</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="trading-enabled-toggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="profile-actions">
@@ -152,6 +172,10 @@ export class UserProfileModal {
         // Friend code copy
         const copyFriendCodeBtn = modal.querySelector('#copy-friend-code-btn') as HTMLButtonElement;
         copyFriendCodeBtn.addEventListener('click', () => this.copyFriendCode());
+
+        // Trading toggle
+        const tradingToggle = modal.querySelector('#trading-enabled-toggle') as HTMLInputElement;
+        tradingToggle.addEventListener('change', () => this.updateTradingSettings(tradingToggle.checked));
 
         // Actions
         const logoutBtn = modal.querySelector('#logout-profile-btn') as HTMLButtonElement;
@@ -273,6 +297,13 @@ export class UserProfileModal {
 
         memberSinceElement.textContent = createdDate;
         lastActiveElement.textContent = lastActiveDate;
+
+        // Update trading toggle
+        const tradingToggle = modal.querySelector('#trading-enabled-toggle') as HTMLInputElement;
+        if (tradingToggle) {
+            tradingToggle.checked = userData.tradingEnabled !== false; // Default to true if undefined
+            console.log('✅ Trading toggle updated to:', tradingToggle.checked);
+        }
     }
 
 
@@ -339,6 +370,33 @@ export class UserProfileModal {
         } catch (error) {
             console.error('Failed to update nickname:', error);
             this.showStatus('❌ Fehler beim Aktualisieren des Nicknames', 'error');
+        }
+    }
+
+    private async updateTradingSettings(enabled: boolean): Promise<void> {
+        if (!this.currentUser) return;
+
+        try {
+            await this.databaseService.updateTradingEnabled(this.currentUser.uid, enabled);
+            
+            // Update current user object
+            this.currentUser.tradingEnabled = enabled;
+            
+            this.showStatus(
+                enabled 
+                    ? '✅ Handel wurde aktiviert' 
+                    : '❌ Handel wurde deaktiviert', 
+                'success'
+            );
+        } catch (error) {
+            console.error('Failed to update trading settings:', error);
+            this.showStatus('❌ Fehler beim Aktualisieren der Handel-Einstellungen', 'error');
+            
+            // Revert toggle on error
+            const tradingToggle = document.querySelector('#trading-enabled-toggle') as HTMLInputElement;
+            if (tradingToggle) {
+                tradingToggle.checked = !enabled;
+            }
         }
     }
 
@@ -675,6 +733,82 @@ export class UserProfileModal {
                 background: rgba(244, 67, 54, 0.2);
                 border: 1px solid #f44336;
                 color: #f44336;
+            }
+
+            /* Trading Settings Toggle */
+            .toggle-setting {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 0;
+            }
+
+            .toggle-info {
+                flex: 1;
+            }
+
+            .toggle-label {
+                display: block;
+                font-weight: 600;
+                color: #fff;
+                margin-bottom: 4px;
+            }
+
+            .toggle-description {
+                display: block;
+                font-size: 0.9rem;
+                color: #aaa;
+                line-height: 1.3;
+            }
+
+            .toggle-switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 34px;
+                margin-left: 20px;
+            }
+
+            .toggle-switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .toggle-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #444;
+                transition: 0.3s;
+                border-radius: 34px;
+            }
+
+            .toggle-slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: 0.3s;
+                border-radius: 50%;
+            }
+
+            input:checked + .toggle-slider {
+                background-color: #4CAF50;
+            }
+
+            input:focus + .toggle-slider {
+                box-shadow: 0 0 1px #4CAF50;
+            }
+
+            input:checked + .toggle-slider:before {
+                transform: translateX(26px);
             }
 
             .hidden {

@@ -477,6 +477,24 @@ export class FriendsTab {
                     <p class="friend-code">Code: ${friend.friendCode}</p>
                     <p class="friend-status">${friend.isOnline ? '🟢 Online' : '⚫ Offline'}</p>
                     <p class="friend-active">Letzte Aktivität: ${new Date(friend.lastActive).toLocaleDateString('de-DE')}</p>
+                    
+                    <div class="friend-trading-settings">
+                        <div class="friend-toggle-setting">
+                            <span class="toggle-label">🔄 Ich erlaube Handel</span>
+                            <label class="friend-toggle-switch">
+                                <input type="checkbox" 
+                                       id="trade-toggle-${friend.friendshipId}" 
+                                       ${friend.iAllowTrading ? 'checked' : ''} 
+                                       onchange="window.friendsTab.updateFriendTradingPermission('${friend.friendshipId}', this.checked)">
+                                <span class="friend-toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="friend-trading-status">
+                            <span class="trading-status ${friend.friendAllowsTrading ? 'allowed' : 'blocked'}">
+                                ${friend.friendAllowsTrading ? '✅ Freund erlaubt Handel' : '❌ Freund verbietet Handel'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="friend-actions">
                     <button class="friend-action-btn" onclick="window.friendsTab.removeFriend('${friend.friendshipId}', '${friend.nickname}')">
@@ -557,6 +575,48 @@ export class FriendsTab {
         } catch (error) {
             console.error('❌ Error removing friend:', error);
             this.showStatus('❌ Fehler beim Entfernen des Freundes', 'error');
+        }
+    }
+
+    public async updateFriendTradingPermission(friendshipId: string, canTrade: boolean): Promise<void> {
+        console.log('🔧 DEBUG: Updating friend trading permission:', friendshipId, canTrade);
+        
+        if (!this.currentUser) {
+            this.showStatus('❌ Nicht angemeldet', 'error');
+            return;
+        }
+        
+        try {
+            const result = await this.friendshipService.updateFriendshipMetadata(
+                friendshipId, 
+                this.currentUser.uid,
+                { canTrade }
+            );
+            if (result.success) {
+                this.showStatus(
+                    canTrade 
+                        ? '✅ Du erlaubst jetzt Handel mit diesem Freund' 
+                        : '❌ Du verbietest jetzt Handel mit diesem Freund', 
+                    'success'
+                );
+            } else {
+                this.showStatus(`❌ ${result.error}`, 'error');
+                
+                // Revert toggle on error
+                const toggle = document.getElementById(`trade-toggle-${friendshipId}`) as HTMLInputElement;
+                if (toggle) {
+                    toggle.checked = !canTrade;
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error updating friend trading permission:', error);
+            this.showStatus('❌ Fehler beim Aktualisieren der Handel-Berechtigung', 'error');
+            
+            // Revert toggle on error
+            const toggle = document.getElementById(`trade-toggle-${friendshipId}`) as HTMLInputElement;
+            if (toggle) {
+                toggle.checked = !canTrade;
+            }
         }
     }
 
@@ -834,6 +894,100 @@ export class FriendsTab {
 
                 .friend-action-btn:hover {
                     background: #5a6268;
+                }
+
+                /* Friend-level Trading Controls */
+                .friend-trading-settings {
+                    margin-top: 12px;
+                    padding-top: 12px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .friend-toggle-setting {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 8px 0;
+                }
+
+                .friend-toggle-setting .toggle-label {
+                    font-size: 13px;
+                    color: #bbb;
+                    font-weight: 500;
+                }
+
+                .friend-toggle-switch {
+                    position: relative;
+                    display: inline-block;
+                    width: 44px;
+                    height: 24px;
+                }
+
+                .friend-toggle-switch input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                }
+
+                .friend-toggle-slider {
+                    position: absolute;
+                    cursor: pointer;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: #444;
+                    transition: 0.3s;
+                    border-radius: 24px;
+                }
+
+                .friend-toggle-slider:before {
+                    position: absolute;
+                    content: "";
+                    height: 18px;
+                    width: 18px;
+                    left: 3px;
+                    bottom: 3px;
+                    background-color: white;
+                    transition: 0.3s;
+                    border-radius: 50%;
+                }
+
+                input:checked + .friend-toggle-slider {
+                    background-color: #4a90e2;
+                }
+
+                input:focus + .friend-toggle-slider {
+                    box-shadow: 0 0 1px #4a90e2;
+                }
+
+                input:checked + .friend-toggle-slider:before {
+                    transform: translateX(20px);
+                }
+
+                /* Trading Status Display */
+                .friend-trading-status {
+                    margin-top: 8px;
+                }
+
+                .trading-status {
+                    font-size: 12px;
+                    font-weight: 500;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+
+                .trading-status.allowed {
+                    background: rgba(76, 175, 80, 0.2);
+                    color: #4CAF50;
+                    border: 1px solid rgba(76, 175, 80, 0.3);
+                }
+
+                .trading-status.blocked {
+                    background: rgba(244, 67, 54, 0.2);
+                    color: #f44336;
+                    border: 1px solid rgba(244, 67, 54, 0.3);
                 }
 
                 @media (max-width: 768px) {
