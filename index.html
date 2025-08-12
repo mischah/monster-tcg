@@ -70,6 +70,9 @@
                         <button id="toggle-sell-mode" class="mode-toggle" title="Verkaufsmodus aktivieren">
                             💰 Verkaufen
                         </button>
+                        <button id="toggle-trading-mode" class="mode-toggle" title="Trading-Modus aktivieren">
+                            🔄 Trading
+                        </button>
                         <button id="select-all-cards" class="mode-toggle hidden" title="Alle gefilterten Karten auswählen (auch die noch nicht geladenen)">
                             ✅ Alle
                         </button>
@@ -87,6 +90,19 @@
                         <div class="multi-sell-actions">
                             <button id="clear-selection-btn" class="action-btn clear">❌ Leeren</button>
                             <button id="sell-selected-btn" class="action-btn sell">💰 Verkaufen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Action Bar -->
+                <div id="trading-bar" class="trading-bar hidden">
+                    <div class="trading-content">
+                        <div class="trading-info">
+                            <span id="trading-selected-count">0</span> Karten für Trading ausgewählt
+                        </div>
+                        <div class="trading-actions">
+                            <button id="clear-trading-btn" class="action-btn clear">❌ Leeren</button>
+                            <button id="send-trade-btn" class="action-btn trade disabled" disabled>🔄 Trading-Anfrage senden</button>
                         </div>
                     </div>
                 </div>
@@ -388,6 +404,112 @@
                     <button id="confirm-sell-btn" class="sell-btn confirm">Verkaufen</button>
                     <button id="cancel-sell-btn" class="sell-btn cancel">Abbrechen</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Response Modal (Phase 2: Empfänger antwortet) -->
+    <div id="trade-response-modal" class="modal hidden">
+        <div class="modal-content trade-modal-content">
+            <span class="close">&times;</span>
+            <div class="trade-modal-header">
+                <h3 id="trade-response-title">🔄 Tauschanfrage von [Freund]</h3>
+                <div class="trade-modal-subtitle">Wähle deine Gegenkarten aus</div>
+            </div>
+            
+            <div class="trade-comparison">
+                <div class="offered-cards-section">
+                    <h4><span id="trade-partner-name">Freund</span> bietet:</h4>
+                    <div id="offered-cards-display" class="trade-cards-grid"></div>
+                </div>
+                
+                <div class="trade-arrow">⇄</div>
+                
+                <div class="response-cards-section">
+                    <h4>Ich biete (auswählen):</h4>
+                    <div class="response-card-filters">
+                        <select id="response-rarity-filter">
+                            <option value="all">Alle Seltenheiten</option>
+                            <option value="common">Häufig</option>
+                            <option value="rare">Selten</option>
+                            <option value="epic">Episch</option>
+                            <option value="legendary">Legendär</option>
+                            <option value="ultra-rare">Ultra-Selten</option>
+                        </select>
+                        <input type="text" id="response-search" placeholder="Karten suchen...">
+                    </div>
+                    <div id="my-response-cards" class="trade-cards-grid response-cards"></div>
+                    
+                    <div class="selected-response-cards">
+                        <h5>Ausgewählte Karten:</h5>
+                        <div id="selected-response-display" class="selected-cards-display"></div>
+                        <div class="response-count">
+                            <span id="response-count">0</span> Karten ausgewählt
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trade-actions">
+                <button id="respond-trade-btn" class="trade-btn primary" disabled>💱 Tauschvorschlag senden</button>
+                <button id="decline-trade-btn" class="trade-btn secondary">❌ Ablehnen</button>
+                <button id="cancel-response-btn" class="trade-btn secondary">🚫 Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Finalize Modal (Phase 3: Initiator entscheidet) -->
+    <div id="trade-finalize-modal" class="modal hidden">
+        <div class="modal-content trade-modal-content">
+            <span class="close">&times;</span>
+            <div class="trade-modal-header">
+                <h3 id="trade-finalize-title">🔄 Finaler Tauschvorschlag</h3>
+                <div class="trade-modal-subtitle">Entscheide über den Tausch</div>
+            </div>
+            
+            <div class="final-trade-comparison">
+                <div class="my-final-cards-section">
+                    <h4>Ich gebe:</h4>
+                    <div id="my-final-cards-display" class="trade-cards-grid"></div>
+                </div>
+                
+                <div class="trade-arrow">⇄</div>
+                
+                <div class="their-final-cards-section">
+                    <h4><span id="finalize-partner-name">Freund</span> gibt:</h4>
+                    <div id="their-final-cards-display" class="trade-cards-grid"></div>
+                </div>
+            </div>
+            
+            <div class="trade-value-comparison">
+                <div class="value-analysis">
+                    <h5>📊 Geschätzter Kartenwert-Vergleich:</h5>
+                    <div class="value-bars">
+                        <div class="value-bar-container">
+                            <span class="value-label">Meine Karten:</span>
+                            <div class="value-bar">
+                                <div id="my-value-bar" class="value-fill"></div>
+                            </div>
+                            <span id="my-value-text" class="value-text">0 Punkte</span>
+                        </div>
+                        <div class="value-bar-container">
+                            <span class="value-label">Partner Karten:</span>
+                            <div class="value-bar">
+                                <div id="partner-value-bar" class="value-fill"></div>
+                            </div>
+                            <span id="partner-value-text" class="value-text">0 Punkte</span>
+                        </div>
+                    </div>
+                    <div class="fairness-indicator">
+                        <span id="fairness-text" class="fairness-text">Analysiere Fairness...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="trade-actions">
+                <button id="accept-final-trade-btn" class="trade-btn success">✅ Tausch akzeptieren</button>
+                <button id="decline-final-trade-btn" class="trade-btn danger">❌ Tausch ablehnen</button>
+                <button id="cancel-finalize-btn" class="trade-btn secondary">🚫 Abbrechen</button>
             </div>
         </div>
     </div>

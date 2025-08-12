@@ -1,4 +1,6 @@
 import type { MonsterData, SaveIndicatorType, GameManagerType, CollectionStats } from '../types.js';
+import { FriendshipService } from '../services/FriendshipService.js';
+import { AuthService } from '../services/AuthService.js';
 
 interface RarityCount {
     common: number;
@@ -10,9 +12,13 @@ interface RarityCount {
 
 export class UIManager {
     private game: GameManagerType;
+    private friendshipService: FriendshipService;
+    private authService: AuthService;
 
     constructor(game: GameManagerType) {
         this.game = game;
+        this.friendshipService = new FriendshipService();
+        this.authService = new AuthService();
     }
 
     public updateDisplay(): void {
@@ -122,6 +128,10 @@ export class UIManager {
         // Performance: Clone template statt innerHTML
         const card = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
         card.classList.add('card-reveal');
+        
+        // Add data-card-id for trading/selling selection
+        const cardId = monster.id || `${monster.name}_${monster.rarity}`;
+        card.setAttribute('data-card-id', cardId);
         
         // Lazy Loading für Bilder
         const imageElement = card.querySelector('.card-image') as HTMLElement;
@@ -410,6 +420,43 @@ export class UIManager {
             });
         }
 
+        // Collection Trading
+        const toggleTradingBtn = document.getElementById('toggle-trading-mode') as HTMLButtonElement;
+        console.log('🔧 DEBUG: Setting up trading button event listener, button found:', !!toggleTradingBtn);
+        if (toggleTradingBtn) {
+            console.log('🔧 DEBUG: Adding click event listener to trading button');
+            toggleTradingBtn.addEventListener('click', () => {
+                console.log('🔧 DEBUG: Trading button clicked!');
+                console.log('🔧 DEBUG: Calling toggleTradingMode()');
+                this.game.collectionManager.toggleTradingMode();
+            });
+        } else {
+            console.log('🚨 ERROR: Trading button not found in DOM!');
+        }
+
+        // Trading Controls
+        const clearTradingBtn = document.getElementById('clear-trading-btn') as HTMLButtonElement;
+        if (clearTradingBtn) {
+            clearTradingBtn.addEventListener('click', () => {
+                this.game.collectionManager.clearTradingSelection();
+            });
+        }
+
+        const sendTradeBtn = document.getElementById('send-trade-btn') as HTMLButtonElement;
+        if (sendTradeBtn) {
+            sendTradeBtn.addEventListener('click', () => {
+                // Get selected cards
+                const selectedCards = this.game.collectionManager.getSelectedCardsForTrading();
+                if (selectedCards.length === 0) {
+                    this.showSaveIndicator('❌ Keine Karten für Trading ausgewählt', 'error');
+                    return;
+                }
+                
+                // Open friend selection modal for trading
+                this.openFriendSelectionModal(selectedCards);
+            });
+        }
+
         // Multi-Selection Controls
         const selectAllBtn = document.getElementById('select-all-cards') as HTMLButtonElement;
         if (selectAllBtn) {
@@ -567,5 +614,206 @@ export class UIManager {
                 this.game.collectionManager.closeSellModal();
             }
         });
+    }
+
+    /**
+     * Open friend selection modal for trading
+     */
+    private openFriendSelectionModal(selectedCards: MonsterData[]): void {
+        // Create simple friend selection modal
+        const modal = document.createElement('div');
+        modal.id = 'friend-selection-modal';
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <span class="close">&times;</span>
+                <h3 style="color: #4a90e2; margin-bottom: 20px;">🔄 Trading-Partner auswählen</h3>
+                
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; color: #ccc;">
+                        <span style="color: #4a90e2; font-weight: bold;">${selectedCards.length}</span> Karten ausgewählt
+                    </p>
+                </div>
+                
+                <div id="friends-list-trading" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        📱 Lade Freundesliste...
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button id="cancel-friend-selection" class="trade-btn secondary">
+                        ❌ Abbrechen
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Setup event listeners
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('#cancel-friend-selection');
+        
+        const closeModal = () => {
+            modal.remove();
+        };
+        
+        closeBtn?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Load friends list if friends system is available
+        this.loadFriendsForTrading(selectedCards);
+    }
+    
+    /**
+     * Load friends for trading modal
+     */
+    private async loadFriendsForTrading(selectedCards: MonsterData[]): Promise<void> {
+        const friendsList = document.getElementById('friends-list-trading');
+        if (!friendsList) return;
+        
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser) {
+            friendsList.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    🔒 Nicht angemeldet<br>
+                    <small>Melde dich an, um mit Freunden zu handeln</small>
+                </div>
+            `;
+            return;
+        }
+        
+        try {
+            // Get friends from FriendshipService
+            const friends = await this.friendshipService.getFriends(currentUser.uid);
+            friendsList.innerHTML = '';
+            
+            if (friends.length === 0) {
+                friendsList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        👥 Keine Freunde gefunden<br>
+                        <small>Füge Freunde hinzu, um mit ihnen zu handeln</small>
+                    </div>
+                `;
+                return;
+            }
+            
+            friends.forEach((friend: any) => {
+                const canTrade = friend.iAllowTrading && friend.friendAllowsTrading;
+                
+                const friendElement = document.createElement('div');
+                friendElement.className = 'friend-item-trading';
+                friendElement.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 8px;
+                    border: 1px solid ${canTrade ? '#4a90e2' : '#666'};
+                `;
+                
+                friendElement.innerHTML = `
+                    <div>
+                        <strong style="color: ${friend.isOnline ? '#4CAF50' : '#999'};">
+                            ${friend.isOnline ? '🟢' : '⚫'} ${friend.nickname}
+                        </strong>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
+                            ${canTrade ? '✅ Trading erlaubt' : '❌ Trading nicht erlaubt'}
+                        </div>
+                    </div>
+                    <button 
+                        class="trade-btn primary" 
+                        ${!canTrade ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}
+                        data-friend-id="${friend.uid}"
+                    >
+                        🔄 Handeln
+                    </button>
+                `;
+                
+                if (canTrade) {
+                    const tradeBtn = friendElement.querySelector('.trade-btn') as HTMLButtonElement;
+                    tradeBtn.addEventListener('click', () => {
+                        this.startTradeWithFriend(friend, selectedCards);
+                    });
+                }
+                
+                friendsList.appendChild(friendElement);
+            });
+            
+        } catch (error: any) {
+            console.error('Error loading friends:', error);
+            friendsList.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #f44336;">
+                    ❌ Fehler beim Laden der Freunde
+                </div>
+            `;
+        }
+    }
+    
+    /**
+     * Start trade with selected friend
+     */
+    private async startTradeWithFriend(friend: any, selectedCards: MonsterData[]): Promise<void> {
+        // Close friend selection modal
+        const modal = document.getElementById('friend-selection-modal');
+        modal?.remove();
+        
+        // Check trading permissions
+        const canTrade = friend.iAllowTrading && friend.friendAllowsTrading;
+        if (!canTrade) {
+            this.showSaveIndicator('❌ Trading mit diesem Freund ist nicht erlaubt', 'error');
+            return;
+        }
+        
+        // Get current user
+        const currentUser = this.authService.getCurrentUser();
+        if (!currentUser) {
+            this.showSaveIndicator('❌ Nicht angemeldet', 'error');
+            return;
+        }
+        
+        if (selectedCards.length === 0) {
+            this.showSaveIndicator('❌ Keine Karten ausgewählt', 'error');
+            return;
+        }
+        
+        try {
+            this.showSaveIndicator('📤 Sende Tauschanfrage...', 'success');
+            
+            // Use TradingService directly to send trade request
+            const tradingService = new (await import('../services/TradingService.js')).TradingService();
+            
+            const result = await tradingService.createTradeRequest(
+                currentUser.uid,
+                friend.uid,
+                selectedCards
+            );
+
+            if (result.success) {
+                this.showSaveIndicator(
+                    `✅ Tauschanfrage an ${friend.nickname} gesendet!`, 
+                    'success'
+                );
+                
+                // Clear trading selection and exit trading mode
+                this.game.collectionManager.clearTradingSelection();
+                this.game.collectionManager.toggleTradingMode(); // Exit trading mode
+                
+            } else {
+                this.showSaveIndicator(`❌ ${result.error}`, 'error');
+            }
+
+        } catch (error) {
+            console.error('Error sending trade request:', error);
+            this.showSaveIndicator('❌ Fehler beim Senden der Tauschanfrage', 'error');
+        }
     }
 }

@@ -8,9 +8,10 @@ interface PerformanceMetrics {
 
 export class CollectionManager {
     private game: GameManagerType;
-    private sellModeActive: boolean = false;
+    public sellModeActive: boolean = false;
+    public tradingModeActive: boolean = false;
     private currentSellCard: MonsterData | null = null;
-    private selectedCards: Set<string> = new Set(); // Für Multi-Selection
+    public selectedCards: Set<string> = new Set(); // Für Multi-Selection
     
     // Virtualisierung für Performance
     private cardsPerPage: number;
@@ -161,9 +162,10 @@ export class CollectionManager {
                 }
                 
                 // Event Listener mit Performance-Optimierung
-                cardElement.addEventListener('click', (e) => {
+                cardElement.addEventListener('click', (e: Event) => {
                     e.preventDefault();
-                    if (this.sellModeActive) {
+                    
+                    if (this.sellModeActive || this.tradingModeActive) {
                         this.toggleCardSelection(monster, cardElement);
                     } else {
                         this.game.ui.showCardDetails(monster);
@@ -313,9 +315,10 @@ export class CollectionManager {
             }
             
             // Event Listener hinzufügen
-            cardElement.addEventListener('click', (e) => {
+            cardElement.addEventListener('click', (e: Event) => {
                 e.preventDefault();
-                if (this.sellModeActive) {
+                
+                if (this.sellModeActive || this.tradingModeActive) {
                     this.toggleCardSelection(monsterData, cardElement);
                 } else {
                     this.game.ui.showCardDetails(monsterData);
@@ -457,7 +460,8 @@ export class CollectionManager {
                 // Neue Event Listener hinzufügen
                 newCardElement.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (this.sellModeActive) {
+                    
+                    if (this.sellModeActive || this.tradingModeActive) {
                         this.toggleCardSelection(monster, newCardElement);
                     } else {
                         this.game.ui.showCardDetails(monster);
@@ -497,6 +501,92 @@ export class CollectionManager {
         
         // Multi-Sell Bar aktualisieren
         this.updateMultiSellBar();
+    }
+
+    public toggleTradingMode(): void {
+        
+        // Wenn Sell-Modus aktiv ist, zuerst beenden
+        if (this.sellModeActive) {
+            this.toggleSellMode();
+        }
+        
+        this.tradingModeActive = !this.tradingModeActive;
+        
+        const toggleBtn = document.getElementById('toggle-trading-mode') as HTMLButtonElement;
+        const tradingBar = document.getElementById('trading-bar') as HTMLDivElement;
+        
+        if (toggleBtn) {
+            if (this.tradingModeActive) {
+                toggleBtn.classList.add('active');
+                toggleBtn.textContent = '❌ Abbrechen';
+                toggleBtn.title = 'Trading-Modus deaktivieren';
+                
+                // Trading Bar anzeigen
+                if (tradingBar) tradingBar.classList.remove('hidden');
+            } else {
+                toggleBtn.classList.remove('active');
+                toggleBtn.textContent = '🔄 Trading';
+                toggleBtn.title = 'Trading-Modus aktivieren';
+                
+                // Trading Bar verstecken
+                if (tradingBar) tradingBar.classList.add('hidden');
+                
+                // Auswahl löschen
+                this.selectedCards.clear();
+                this.updateTradingBar();
+            }
+        }
+        
+        // Collection neu rendern für visuelle Updates
+        this.refreshTradingMode();
+    }
+
+    private refreshTradingMode(): void {
+        const grid = document.getElementById('card-grid') as HTMLDivElement;
+        if (!grid) return;
+        
+        // Toggle CSS-Klasse für Trading-Modus
+        if (this.tradingModeActive) {
+            grid.classList.add('trading-mode');
+            grid.classList.remove('sell-mode'); // Sicherstellen dass Sell-Mode nicht aktiv ist
+        } else {
+            grid.classList.remove('trading-mode');
+        }
+        
+        // Event Listener für existierende Karten aktualisieren (gleiche Logik wie refreshSellMode)
+        const cardElements = grid.querySelectorAll('.monster-card');
+        cardElements.forEach((cardElement, index) => {
+            if (index < this.filteredCards.length) {
+                const monster = this.filteredCards[index];
+                
+                // Entferne alte Event Listener (clone-Trick)
+                const newCardElement = cardElement.cloneNode(true) as HTMLElement;
+                
+                // Überprüfe ob Karte ausgewählt ist
+                const cardKey = this.getCardKey(monster);
+                if (this.selectedCards.has(cardKey)) {
+                    newCardElement.classList.add('selected');
+                } else {
+                    newCardElement.classList.remove('selected');
+                }
+                
+                // Neue Event Listener hinzufügen
+                newCardElement.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    if (this.sellModeActive || this.tradingModeActive) {
+                        this.toggleCardSelection(monster, newCardElement);
+                    } else {
+                        this.game.ui.showCardDetails(monster);
+                    }
+                }, { passive: false });
+                
+                cardElement.parentNode?.replaceChild(newCardElement, cardElement);
+            }
+        });
+        
+        // Trading Bar aktualisieren
+        this.updateTradingBar();
     }
 
     public showSellConfirmation(card: MonsterData): void {
@@ -551,11 +641,21 @@ export class CollectionManager {
     private getCardKey(card: MonsterData, collectionArray: MonsterData[] | null = null): string {
         // Verwende Array-Index für eindeutige Keys bei Duplikaten
         const sourceArray = collectionArray || this.game.collection;
-        const cardIndex = sourceArray.indexOf(card);
+        
+        // Find card by matching all properties instead of object reference
+        const cardIndex = sourceArray.findIndex(c => 
+            c.name === card.name && 
+            c.rarity === card.rarity && 
+            c.attack === card.attack && 
+            c.defense === card.defense && 
+            c.health === card.health &&
+            c.description === card.description
+        );
         
         if (cardIndex === -1) {
-            // Fallback für Karten die nicht direkt gefunden werden
-            return `${card.name}_${card.rarity}_${card.attack}_${card.defense}_${card.health}_${Date.now()}_${Math.random()}`;
+            // Still use fallback, but make it deterministic
+            console.warn('⚠️ Card not found in collection, using fallback key for:', card.name);
+            return `fallback_${card.name}_${card.rarity}_${card.attack}_${card.defense}_${card.health}`;
         }
         
         return `card_${cardIndex}_${card.name}_${card.rarity}`;
@@ -574,7 +674,12 @@ export class CollectionManager {
             cardElement.classList.add('selected');
         }
         
-        this.updateMultiSellBar();
+        // Update entsprechende Bar je nach aktivem Modus
+        if (this.sellModeActive) {
+            this.updateMultiSellBar();
+        } else if (this.tradingModeActive) {
+            this.updateTradingBar();
+        }
     }
 
     public selectAllCards(): void {
@@ -784,12 +889,68 @@ export class CollectionManager {
         console.log(`🔄 Multi-Sell Bar Update: ${count} Karten ausgewählt, ${foundCards} gefunden, ${totalValue} Münzen`);
     }
 
+    private updateTradingBar(): void {
+        const selectedCount = document.getElementById('trading-selected-count') as HTMLSpanElement;
+        const sendTradeBtn = document.getElementById('send-trade-btn') as HTMLButtonElement;
+        const tradingBar = document.getElementById('trading-bar') as HTMLDivElement;
+        
+        if (!selectedCount || !sendTradeBtn) return;
+        
+        const count = this.selectedCards.size;
+        
+        selectedCount.textContent = count.toString();
+        
+        // Button aktivieren/deaktivieren
+        if (count > 0) {
+            sendTradeBtn.disabled = false;
+            sendTradeBtn.classList.remove('disabled');
+        } else {
+            sendTradeBtn.disabled = true;
+            sendTradeBtn.classList.add('disabled');
+        }
+        
+        // Bar anzeigen/verstecken basierend auf Auswahl
+        if (tradingBar) {
+            if (count > 0 && this.tradingModeActive) {
+                tradingBar.classList.remove('hidden');
+            } else if (!this.tradingModeActive) {
+                tradingBar.classList.add('hidden');
+            }
+        }
+        
+        console.log(`🔄 Trading: ${count} Karten für Tausch ausgewählt`);
+    }
+
+    public getSelectedCardsForTrading(): MonsterData[] {
+        const selectedCards: MonsterData[] = [];
+        
+        this.selectedCards.forEach(cardKey => {
+            const card = this.findCardByKeyInCollection(cardKey);
+            if (card) {
+                selectedCards.push(card);
+            }
+        });
+        
+        return selectedCards;
+    }
+
+    public clearTradingSelection(): void {
+        this.selectedCards.clear();
+        this.updateTradingBar();
+        
+        // Visuelle Auswahl entfernen
+        const selectedElements = document.querySelectorAll('.monster-card.selected');
+        selectedElements.forEach(element => {
+            element.classList.remove('selected');
+        });
+    }
+
     private findCardByKey(cardKey: string): MonsterData | undefined {
         return this.filteredCards.find(card => this.getCardKey(card) === cardKey);
     }
 
     private findCardByKeyInCollection(cardKey: string): MonsterData | undefined {
-        // Extrahiere Index aus dem Key (Format: card_INDEX_name_rarity)
+        // Handle normal format: card_INDEX_name_rarity
         const indexMatch = cardKey.match(/^card_(\d+)_/);
         if (indexMatch) {
             const index = parseInt(indexMatch[1]);
@@ -798,7 +959,20 @@ export class CollectionManager {
             }
         }
         
-        // Fallback: Suche in der GESAMTEN Sammlung nach Key-Match
+        // Handle fallback format: fallback_name_rarity_attack_defense_health
+        const fallbackMatch = cardKey.match(/^fallback_(.+)_([^_]+)_(\d+)_(\d+)_(\d+)$/);
+        if (fallbackMatch) {
+            const [, name, rarity, attack, defense, health] = fallbackMatch;
+            return this.game.collection.find(card => 
+                card.name === name &&
+                card.rarity === rarity &&
+                card.attack === parseInt(attack) &&
+                card.defense === parseInt(defense) &&
+                card.health === parseInt(health)
+            );
+        }
+        
+        // Final fallback: Suche in der GESAMTEN Sammlung nach Key-Match
         return this.game.collection.find(card => this.getCardKey(card) === cardKey);
     }
 

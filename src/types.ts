@@ -90,6 +90,7 @@ export type GameManagerType = {
     deckManager: any; // DeckManager
     collectionManager: any; // CollectionManager
     saveManager: any; // SaveManager
+    friendsTab: any; // FriendsTab
     switchTab: (tab: string) => void;
     initializeStarterCards: () => void;
 };
@@ -103,6 +104,14 @@ export type UserProfile = {
     createdAt: string;
     lastActive: string;
     tradingEnabled?: boolean; // Global trading master switch
+};
+
+export type Friend = {
+    uid: string;
+    nickname: string;
+    isOnline: boolean;
+    iAllowTrading: boolean;
+    friendAllowsTrading: boolean;
 };
 
 export type FirebaseGameData = {
@@ -139,4 +148,48 @@ export type EmailLinkAuthResult = {
     success: boolean;
     error?: string;
     needsSignIn?: boolean;
+};
+
+// Trading System Types
+export type TradeStatus = 
+    | 'pending'        // Warten auf Empfänger-Antwort
+    | 'responded'      // Empfänger hat Gegenkarten gewählt
+    | 'accepted'       // Tausch wurde akzeptiert
+    | 'declined'       // Tausch wurde abgelehnt
+    | 'cancelled'      // Initiator hat abgebrochen
+    | 'expired';       // Automatisch verfallen
+
+export type TradedCard = {
+    name: string;
+    rarity: Rarity;
+    attack: number;
+    defense: number;
+    health: number;
+    description: string;
+    emoji: string;
+    cardKey: string;    // Eindeutige Identifikation für Duplikate
+};
+
+export type TradeRequest = {
+    id: string;
+    initiator: {
+        uid: string;
+        nickname: string;
+        offeredCards: TradedCard[];     // Karten die angeboten werden
+    };
+    receiver: {
+        uid: string;
+        nickname: string;  
+        requestedCards?: TradedCard[];  // Gegenkarten (nach Phase 2)
+    };
+    status: TradeStatus;
+    createdAt: string;
+    respondedAt?: string;
+    completedAt?: string;
+    expiresAt: string;              // Auto-cleanup nach 7 Tagen
+    metadata: {
+        initiatorSeen: boolean;
+        receiverSeen: boolean;
+        version: number;            // Für Konfliktvermeidung
+    };
 };

@@ -362,17 +362,38 @@ export class AuthManager {
         if (!uid) return;
         
         try {
-            // Import FriendshipService dynamically to avoid circular dependencies
+            // Import services dynamically to avoid circular dependencies
             const { FriendshipService } = await import('../services/FriendshipService.js');
+            const { TradingService } = await import('../services/TradingService.js');
             const friendshipService = new FriendshipService();
+            const tradingService = new TradingService();
             
-            // Subscribe to friend requests and update badge
-            this.friendsBadgeUnsubscribe = friendshipService.subscribeFriendRequests(uid, (requests) => {
+            let friendRequestsCount = 0;
+            let tradeRequestsCount = 0;
+            
+            // Subscribe to friend requests
+            const friendRequestsUnsubscribe = friendshipService.subscribeFriendRequests(uid, (requests) => {
                 const incomingRequests = requests.filter(r => r.to.uid === uid);
-                this.updateFriendsBadge(incomingRequests.length);
+                friendRequestsCount = incomingRequests.length;
+                this.updateFriendsBadge(friendRequestsCount + tradeRequestsCount);
+                console.log('🔔 Friends badge updated - Friend requests:', friendRequestsCount, 'Trade requests:', tradeRequestsCount);
             });
             
-            console.log('✅ Friends badge initialized');
+            // Subscribe to trade requests
+            const tradeRequestsUnsubscribe = tradingService.subscribeTradeRequests(uid, (trades) => {
+                const incomingTrades = trades.filter(t => t.receiver.uid === uid && t.status === 'pending');
+                tradeRequestsCount = incomingTrades.length;
+                this.updateFriendsBadge(friendRequestsCount + tradeRequestsCount);
+                console.log('🔔 Friends badge updated - Friend requests:', friendRequestsCount, 'Trade requests:', tradeRequestsCount);
+            });
+            
+            // Store cleanup function that handles both subscriptions
+            this.friendsBadgeUnsubscribe = () => {
+                friendRequestsUnsubscribe();
+                tradeRequestsUnsubscribe();
+            };
+            
+            console.log('✅ Friends badge initialized with friend and trade requests');
         } catch (error) {
             console.error('❌ Failed to initialize friends badge:', error);
         }

@@ -68,6 +68,9 @@ export class Game {
         // Start auto-save with Firebase support
         this.firebaseSaveManager.startAutoSave();
         
+        // Make game instance globally accessible
+        (window as any).game = this;
+        
         // Globale Test-Funktion für Browser-Konsole
         (window as any).testSell = () => {
             console.log('=== SELL SYSTEM TEST ===');
@@ -103,6 +106,43 @@ export class Game {
                 console.log('Testing toggle button click...');
                 toggleBtn.click();
             }
+        };
+        
+        // Trading-System Test-Funktion
+        (window as any).testTrading = () => {
+            console.log('=== TRADING SYSTEM TEST ===');
+            console.log('Game instance:', this);
+            console.log('Trading mode active:', this.collectionManager.tradingModeActive);
+            
+            // Teste Trading Toggle-Button
+            const tradingBtn = document.getElementById('toggle-trading-mode');
+            console.log('Trading button:', tradingBtn);
+            if (tradingBtn) {
+                console.log('Trading button text:', tradingBtn.textContent);
+                console.log('Trading button classList:', tradingBtn.classList.toString());
+                console.log('Trading button onclick:', tradingBtn.onclick);
+            }
+            
+            // Teste Trading Bar
+            const tradingBar = document.getElementById('trading-bar');
+            console.log('Trading bar:', tradingBar);
+            if (tradingBar) {
+                console.log('Trading bar display:', (tradingBar as HTMLElement).style.display);
+                console.log('Trading bar classList:', tradingBar.classList.toString());
+            }
+            
+            // Teste Event-Listener
+            if (tradingBtn) {
+                console.log('Testing trading button click...');
+                tradingBtn.click();
+            }
+            
+            // Teste Collection Manager Methoden
+            console.log('toggleTradingMode method:', this.collectionManager.toggleTradingMode);
+            
+            // Test CollectionManager direkt
+            console.log('Direct test: calling toggleTradingMode() …');
+            this.collectionManager.toggleTradingMode();
         };
     }
 

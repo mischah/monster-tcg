@@ -26,6 +26,8 @@ export class NotificationService {
     private activeNotifications: Map<string, HTMLElement> = new Map();
     private tempNotificationListener: Unsubscribe | null = null;
     private currentUserId: string | null = null;
+    private audioContext: AudioContext | null = null;
+    private userHasInteracted: boolean = false;
 
     constructor() {
         if (NotificationService.instance) {
@@ -33,6 +35,7 @@ export class NotificationService {
         }
         NotificationService.instance = this;
         this.initializeContainer();
+        this.setupAudioContext();
     }
 
     private initializeContainer(): void {
@@ -44,6 +47,39 @@ export class NotificationService {
             this.notificationContainer.className = 'notification-container';
             document.body.appendChild(this.notificationContainer);
         }
+    }
+
+    private setupAudioContext(): void {
+        // Setup user interaction listeners to enable audio
+        const enableAudio = () => {
+            if (!this.userHasInteracted) {
+                console.log('🔊 User interaction detected - enabling audio');
+                this.userHasInteracted = true;
+                
+                // Create and resume AudioContext if needed
+                if (!this.audioContext) {
+                    try {
+                        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                    } catch (e) {
+                        console.log('🔇 AudioContext not supported');
+                    }
+                }
+                
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume().then(() => {
+                        console.log('🔊 AudioContext resumed');
+                    }).catch((e) => {
+                        console.log('🔇 Failed to resume AudioContext:', e);
+                    });
+                }
+            }
+        };
+
+        // Listen for various user interactions
+        const events = ['click', 'keydown', 'touchstart'];
+        events.forEach(event => {
+            document.addEventListener(event, enableAudio, { once: true });
+        });
     }
 
     public showNotification(data: NotificationData): void {
@@ -134,19 +170,36 @@ export class NotificationService {
 
     private playAudio(filename: string): void {
         console.log('🔊 Attempting to play audio:', filename);
+        
+        // Check if user has interacted
+        if (!this.userHasInteracted) {
+            console.log('🔇 Audio blocked - waiting for user interaction');
+            return;
+        }
+        
         try {
-            const audio = new Audio(`/src/audio/${filename}`);
+            // All environments use the same /monster-tcg/ path structure
+            const audioPath = `/monster-tcg/src/audio/${filename}`;
+            
+            const audio = new Audio(audioPath);
             audio.volume = 0.3; // 30% volume
-            console.log('🔊 Audio object created, attempting to play...');
+            console.log('🔊 Audio object created with path:', audioPath);
+            
+            // Modern browsers: need user gesture
             audio.play().then(() => {
                 console.log('✅ Audio played successfully:', filename);
             }).catch(error => {
                 console.log('🔇 Could not play notification sound:', error);
-                console.log('🔇 Error details:', error.message);
+                console.log('🔇 Error details:', (error as Error).message);
+                
+                // If it's still a user interaction error, inform user
+                if (error.name === 'NotAllowedError') {
+                    console.log('💡 Audio will work after first user interaction (click, tap, key press)');
+                }
             });
         } catch (error) {
             console.log('🔇 Audio not available:', error);
-            console.log('🔇 Error details:', error.message);
+            console.log('🔇 Error details:', (error as Error).message);
         }
     }
 
@@ -403,6 +456,64 @@ export class NotificationService {
         }
     }
 
+    // Trading Notifications
+    
+    public showTradeRequestReceived(from: string): void {
+        const notificationData = {
+            type: 'info' as NotificationType,
+            title: '🔄 Neue Tauschanfrage',
+            message: `${from} möchte mit dir tauschen`,
+            audioFile: 'ding.mp3',
+            clickAction: () => {
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('friends');
+                }
+            }
+        };
+
+        // Always play audio
+        this.playAudio('ding.mp3');
+        
+        // Only show toast if not on relevant tab
+        if (this.shouldShowToastNotification()) {
+            this.showNotification({
+                id: `trade-request-${Date.now()}`,
+                ...notificationData
+            });
+        } else {
+            console.log('🔔 Trade request toast suppressed - user is on Friends tab');
+        }
+    }
+
+    public showTradeResponseReceived(from: string): void {
+        const notificationData = {
+            type: 'success' as NotificationType,
+            title: '💱 Tausch-Antwort erhalten',
+            message: `${from} hat auf deine Tauschanfrage geantwortet`,
+            audioFile: 'success.mp3',
+            clickAction: () => {
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('friends');
+                }
+            }
+        };
+
+        // Always play audio
+        this.playAudio('success.mp3');
+        
+        // Only show toast if not on relevant tab
+        if (this.shouldShowToastNotification()) {
+            this.showNotification({
+                id: `trade-response-${Date.now()}`,
+                ...notificationData
+            });
+        } else {
+            console.log('🔔 Trade response toast suppressed - user is on Friends tab');
+        }
+    }
+
     private injectStyles(): void {
         if (document.getElementById('notification-styles')) return;
 
@@ -532,6 +643,169 @@ export class NotificationService {
             }
         `;
         document.head.appendChild(style);
+    }
+
+    /**
+     * Show trade request notification
+     */
+    public showTradeRequest(fromUser: { nickname: string }, cardCount: number, targetUserId?: string): void {
+        const notificationData = {
+            type: 'info' as NotificationType,
+            title: '🔄 Neue Tauschanfrage',
+            message: `${fromUser.nickname} möchte ${cardCount} Karten mit dir tauschen`,
+            audioFile: 'ding.mp3',
+            clickAction: () => {
+                // Switch to friends tab
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('friends');
+                }
+            }
+        };
+        
+        if (targetUserId) {
+            this.sendCrossBrowserNotification(targetUserId, notificationData);
+        } else {
+            // Always play audio
+            this.playAudio('ding.mp3');
+            
+            // Only show toast if not on Friends tab
+            if (this.shouldShowToastNotification()) {
+                this.showNotification({
+                    id: `trade-request-${Date.now()}`,
+                    ...notificationData
+                });
+            } else {
+                console.log('🔔 Trade request toast suppressed - user is on Friends tab');
+            }
+        }
+    }
+
+    /**
+     * Show trade response notification (when someone responds to your trade)
+     */
+    public showTradeResponse(fromUser: { nickname: string }, targetUserId?: string): void {
+        const notificationData = {
+            type: 'info' as NotificationType,
+            title: '💱 Tausch-Antwort erhalten',
+            message: `${fromUser.nickname} hat auf deinen Tauschvorschlag geantwortet`,
+            audioFile: 'ding.mp3',
+            clickAction: () => {
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('friends');
+                }
+            }
+        };
+        
+        if (targetUserId) {
+            this.sendCrossBrowserNotification(targetUserId, notificationData);
+        } else {
+            // Always play audio
+            this.playAudio('ding.mp3');
+            
+            // Only show toast if not on Friends tab
+            if (this.shouldShowToastNotification()) {
+                this.showNotification({
+                    id: `trade-response-${Date.now()}`,
+                    ...notificationData
+                });
+            } else {
+                console.log('🔔 Trade response toast suppressed - user is on Friends tab');
+            }
+        }
+    }
+
+    /**
+     * Show trade accepted notification
+     */
+    public showTradeAccepted(partnerUser: { nickname: string }, cardsReceived: number, targetUserId?: string): void {
+        const notificationData = {
+            type: 'success' as NotificationType,
+            title: '✅ Tausch erfolgreich!',
+            message: `Tausch mit ${partnerUser.nickname} abgeschlossen! ${cardsReceived} neue Karten erhalten`,
+            audioFile: 'success.mp3',
+            clickAction: () => {
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('collection');
+                }
+            }
+        };
+        
+        if (targetUserId) {
+            this.sendCrossBrowserNotification(targetUserId, notificationData);
+        } else {
+            // Always play audio
+            this.playAudio('success.mp3');
+            
+            this.showNotification({
+                id: `trade-accepted-${Date.now()}`,
+                ...notificationData
+            });
+        }
+    }
+
+    /**
+     * Show trade declined notification  
+     */
+    public showTradeDeclined(partnerUser: { nickname: string }, targetUserId?: string): void {
+        const notificationData = {
+            type: 'warning' as NotificationType,
+            title: '❌ Tausch abgelehnt',
+            message: `${partnerUser.nickname} hat den Tausch abgelehnt`,
+            audioFile: 'neutral.mp3',
+            clickAction: () => {
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('friends');
+                }
+            }
+        };
+        
+        if (targetUserId) {
+            this.sendCrossBrowserNotification(targetUserId, notificationData);
+        } else {
+            // Always play audio
+            this.playAudio('neutral.mp3');
+            
+            // Only show toast if not on Friends tab
+            if (this.shouldShowToastNotification()) {
+                this.showNotification({
+                    id: `trade-declined-${Date.now()}`,
+                    ...notificationData
+                });
+            } else {
+                console.log('🔔 Trade declined toast suppressed - user is on Friends tab');
+            }
+        }
+    }
+
+    /**
+     * Show trade completed notification (for both parties)
+     */
+    public showTradeCompleted(partnerName: string, cardsReceived: number): void {
+        const notificationData = {
+            type: 'success' as NotificationType,
+            title: '🎉 Kartentausch erfolgreich!',
+            message: `Tausch mit ${partnerName} abgeschlossen! ${cardsReceived} neue Karten erhalten`,
+            audioFile: 'success.mp3',
+            clickAction: () => {
+                const game = (window as any).game;
+                if (game && game.switchTab) {
+                    game.switchTab('collection');
+                }
+            }
+        };
+
+        // Always play audio
+        this.playAudio('success.mp3');
+        
+        this.showNotification({
+            id: `trade-completed-${Date.now()}`,
+            duration: 8000,
+            ...notificationData
+        });
     }
 }
 
